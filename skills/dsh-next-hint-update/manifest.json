@@ -1,0 +1,31 @@
+{
+  "name": "dsh-next-hint-update",
+  "version": "0.1.0",
+  "owner": "xiaoshenming",
+  "status": "local",
+  "maturity_tier": "scaffold",
+  "lifecycle_stage": "skill",
+  "context_budget_tier": "standard",
+  "target_platforms": [
+    "deepseek-harness",
+    "agent-skills-compatible"
+  ],
+  "triggers": [
+    "更新",
+    "更新插件",
+    "更新一下插件",
+    "自我迭代",
+    "逛逛社区",
+    "补扫社区",
+    "看多一点",
+    "update the plugin"
+  ],
+  "outputs": [
+    "community-scan",
+    "competitor-diff",
+    "code-fix",
+    "changelog",
+    "discussion-reply",
+    "git-push"
+  ]
+}

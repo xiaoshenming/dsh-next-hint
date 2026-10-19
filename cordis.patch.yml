@@ -1,0 +1,11 @@
+# dsh-next-hint bundle patch — inserts the dual-face plugin into a profile roster.
+#
+# DSH Desktop: Settings → Plugins → add "github:<owner>/dsh-next-hint#main",
+#              then update it from the same page.
+# CLI:         dsh plugin --profile desktop add "github:<owner>/dsh-next-hint#main"
+#
+# Host half    (exports ".")        — walking skeleton, see docs/TASKS.md phase 2.
+# Browser half (exports "./client") — walking skeleton, see docs/TASKS.md phase 2.
+- insert:
+    - id: next-hint
+      name: dsh-next-hint
