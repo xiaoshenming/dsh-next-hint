@@ -66,6 +66,11 @@ window.__ModuleLoader__.load({
 ```
 
 即：客户端半边 = 注册一个 factory，`exports.inject` 声明要注入的**客户端服务名**，`exports.apply(ctx, config)` 是入口。
+
+> **两个 inject 不是一回事，别写混：**
+> - `package.json` 里的 `dsh.client.inject` = **模块请求**（要加载哪些 `@deepseek-ai/dsh-client-*` 包）；
+> - 客户端 bundle 里的 `exports.inject` = **运行时服务名**（`sessions`、`locale`、`inputTriggers` …）。
+> 前者写错 → 打包/加载失败；后者写错 → `ctx` 上拿不到服务。
 （宿主半边则是 ESM 导出 `{ name, inject, Config, apply }`，出处：`@deepseek-ai/dsh-session-title-first-prompt-llm` 与 `@deepseek-ai/dsh-agent-instructions` 的 `lib/index.js` 末行导出。）
 
 ### 4.3 输入框 facade（读草稿 + 写草稿）

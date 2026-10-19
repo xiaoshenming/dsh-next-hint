@@ -24,7 +24,7 @@
 
 ## C1 — 浏览器半边怎么拿到「当前会话」与输入框 facade？
 
-- 要回答：`exports.inject` 到底该写哪些客户端服务名（`sessions`? `uiSession`? `conversation`?）；`sessions.binding(id).ctx` 在 `0.2.1-rc.2` 是否仍是这个形状。
+- 要回答：客户端 bundle 里的 `exports.inject`（**运行时服务名**，不是 package.json 里那个模块请求清单）到底该写哪些；`sessions.binding(id).ctx` 在 `0.2.1-rc.2` 是否仍是这个形状。
 - 怎么验：临时客户端插件打印 `ctx` 里可用的服务键；对照 `dsh-quote-followup@0.2.10/lib/client.js` L255-300。
 - 算过：能同步拿到 `input`，并成功执行一次 `insertText` 且草稿里出现文字。
 - 风险：0.1.7 之后 `sessions.scope()` → `sessions.binding().ctx` 变更过；必须以本机版本实测为准。
