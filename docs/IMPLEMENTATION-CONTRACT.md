@@ -20,8 +20,8 @@
 
 ```sh
 # 一条泳道 = 一个 worktree = 一个分支
-git worktree add ../chap2-wt/host   -b feat/host
-git worktree add ../chap2-wt/client -b feat/client
+git worktree add ../dsh-next-hint-wt/host   -b feat/host
+git worktree add ../dsh-next-hint-wt/client -b feat/client
 ```
 
 - 分支名：`feat/<lane>`、`fix/<lane>`、`docs/<lane>`。

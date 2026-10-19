@@ -6,14 +6,14 @@ description: |
 
 # 更新插件 — dsh-next-hint 自我迭代
 
-仓库：`D:\project\chap2`（远程待建，预期 `xiaoshenming/dsh-next-hint` `main`）
+仓库：`D:\project\chap2\dsh-next-hint`（远程待建，预期 `xiaoshenming/dsh-next-hint` `main`）
 默认简体中文。用户只说「更新」时不要再问流程，直接跑完整条。
 
 ## 0. 先看仓库状态（30 秒）
 
 ```sh
-git -C D:/project/chap2 status --short
-git -C D:/project/chap2 log --oneline -3
+git -C D:/project/chap2/dsh-next-hint status --short
+git -C D:/project/chap2/dsh-next-hint log --oneline -3
 ```
 
 工作区可能带着用户自己的未提交改动：**不要 `git add -A` 一把混进功能提交**。

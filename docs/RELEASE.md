@@ -36,7 +36,7 @@ dsh plugin --profile desktop add "github:<owner>/dsh-next-hint#main"
 ```sh
 # 在 profile 里链接本地 checkout（只做一次）
 cd ~/.dsh/profiles/desktop
-pnpm add "link:D:/project/chap2"
+pnpm add "link:D:/project/chap2/dsh-next-hint"
 # 重启 DSH / 重开 Web GUI 窗口
 ```
 

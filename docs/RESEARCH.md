@@ -124,7 +124,7 @@ input.insertReference(quoteChip, { start, end, draftRev });
 ## 6. 多智能体并行开发：本项目采用的做法
 
 1. **接口先行**：并行前先把 `src/` 的纯函数签名与数据结构冻结（`docs/ARCHITECTURE.md` §4），写进 `src/contracts/`。
-2. **一个泳道一个 worktree**：`git worktree add ../chap2-wt/<lane> -b feat/<lane>`，互不共享工作区。
+2. **一个泳道一个 worktree**：`git worktree add ../dsh-next-hint-wt/<lane> -b feat/<lane>`，互不共享工作区。
 3. **文件所有权**：合同里的表说了算；需要改别人的文件 → 提 issue 式留言给主控，不直接动手。
 4. **每个泳道自带测试**：`node --test tests/<lane>/` 必须绿，否则不许合并。
 5. **主控只做三件事**：冻结接口、合并顺序、跑集成矩阵。不做功能实现，避免自己成为冲突源。

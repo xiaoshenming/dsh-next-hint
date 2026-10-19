@@ -28,7 +28,7 @@
 
 ## 并行开发规则
 
-- 一条泳道 = 一个 worktree（`../chap2-wt/<lane>`）+ 一个分支（`feat/<lane>`）。
+- 一条泳道 = 一个 worktree（`../dsh-next-hint-wt/<lane>`）+ 一个分支（`feat/<lane>`）。
 - 只写 `docs/IMPLEMENTATION-CONTRACT.md` `3 里自己名下的文件。
 - 跨泳道只认 `src/contracts/` 里的冻结接口；要改契约先改文档 + 加 ADR。
 - 提交前自查：`git diff --name-only` 是否越界、`node --test` 是否绿。
