@@ -35,6 +35,19 @@
 | `dsh-quote-followup` | 划选文本 → 以引用 chip 追加进输入框 | **本项目客户端实现的主要参照** |
 | `@wingsky-1/dsh-notifier` | 回合完成/错误事件通知 | 证明宿主侧事件 → SSE → 浏览器这条链路可行 |
 
+### 3.1 复核（2026-10-20，发布当天）：出现了同类
+
+市场清单里仍然没有，但官方 Discussions 里已经有人做了几乎同款：
+
+| 项目 | 做法 | 与我们的差异 |
+| --- | --- | --- |
+| [`dsh-composer-prediction`](https://github.com/deepseek-ai/deepseek-harness/discussions/10053)（2026-10-17） | 回合结束 → 一笔辅助请求 → 灰字画在 `conversation.input.overlay`；自带设置页与配置持久化 RPC；按会话缓存建议 | 我们：触发在浏览器（`session.running` 真→假）、宿主无状态（一次 POST）、渲染在 `conversation.composer.dock` 槽位 + 自绘绝对定位节点、配置走宿主 schemastery |
+
+两边在「复用 `ctx.llm`、推理档压到最低、绝不上屏草稿」三点上独立收敛到同一结论 —— 这说明设计的约束抓对了。
+
+**共存问题（写进 README）**：两个插件都会往同一个输入框画灰字，也都会每轮各花一笔模型调用；
+同时装会出现两条重叠建议。谁先检测「已有 ghost 在场」谁就能让出，目前两边都没做。
+
 ## 4. 已核实的缝合点（每条都能复查）
 
 ### 4.1 包声明（双半包）

@@ -95,6 +95,12 @@ Tab 只在「没有别的候选菜单占用它」时生效 —— `/`、`@` 菜�
 - **辅助请求跟会话标题插件同一套路**：独立 system instruction、独立超时、最低推理档，
   失败不影响主对话。
 
+## 同类
+
+社区里已经有一个思路相同的插件：[Composer predictions（`dsh-composer-prediction`）](https://github.com/deepseek-ai/deepseek-harness/discussions/10053)。
+两边都是「回合结束 → 一笔辅助请求 → 灰字 → Tab 采纳」，差异在接缝（它挂 overlay 槽位并自带配置页，
+我们走官方 dock 槽位 + 宿主无状态的一次 POST）。**别同时装**：会画出两条重叠建议，还每轮多花一笔调用。
+
 ## 兼容性
 
 - 实测环境：**DSH Desktop `0.2.1-rc.2`（Windows）**。宿主半边依赖 `ctx.llm` / `ctx.sessions` /

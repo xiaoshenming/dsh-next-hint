@@ -108,6 +108,15 @@ Deliberate choices:
   instruction, its own timeout, the cheapest reasoning level, and a failure that
   cannot touch the main conversation.
 
+## Related work
+
+The community already has a plugin built on the same idea:
+[Composer predictions (`dsh-composer-prediction`)](https://github.com/deepseek-ai/deepseek-harness/discussions/10053).
+Both turn "a turn settled" into one auxiliary request and a ghost line; the seams differ
+(they mount the overlay slot and ship their own settings page, this one uses the official
+dock slot and a stateless host POST). **Do not install both** — you would get two
+overlapping ghosts and two auxiliary calls per turn.
+
 ## Compatibility
 
 - Measured on **DSH Desktop `0.2.1-rc.2` (Windows)**. The host half needs

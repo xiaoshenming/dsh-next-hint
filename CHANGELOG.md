@@ -3,6 +3,12 @@
 All notable changes to this project are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versioning: SemVer.
 
+### Documented
+
+- Prior art: `dsh-composer-prediction` (2026-10-17) solves the same problem with a different
+  seam set. RESEARCH `3.1 records the comparison, and both READMEs warn that installing both
+  paints two overlapping ghosts.
+
 ## [0.1.0] - 2026-10
 
 First open-source release: the feature works end to end on DSH Desktop `0.2.1-rc.2`.
