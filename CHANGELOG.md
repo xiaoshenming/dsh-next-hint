@@ -22,6 +22,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versioning: Se
   session-switch restore and Esc dismiss with the same seam family; `dsh-input-assist@0.7.1`
   is complementary (typing completion), not a competitor. RESEARCH `3.1/3.2 records both
   comparisons, and READMEs warn which pair must not be installed together.
+- Install docs corrected: the desktop profile is owned by the app, so the CLI example now
+  targets a self-managed profile (`web`) instead of the refused `--profile desktop`.
 
 ## [0.1.0] - 2026-10
 

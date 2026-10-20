@@ -20,15 +20,15 @@
 设置 → 插件 → 添加：github:<owner>/dsh-next-hint#main
 ```
 
-CLI 等价物（在有 `dsh` 命令的环境）：
+CLI 等价物**只适用于自管 profile**（桌面 profile 由应用独占，CLI 会拒绝 `--profile desktop`）：
 
 ```sh
-dsh plugin --profile desktop add "github:<owner>/dsh-next-hint#main"
+dsh plugin --profile web add "github:<owner>/dsh-next-hint#main"
 ```
 
 装出来的是一份**没有 .git 的拷贝**（pnpm 从 codeload 解出来的 tarball），因此：
 
-- **用户侧更新** = 设置 → 插件 → 本插件 → 更新（官方 in-process manager 重新解析 `#main`），不需要重启。
+- **用户侧更新** = 设置 → 插件 → 本插件 → 更新（官方 in-process manager 重新解析 `#main`）；通常热更新，没生效就重启一次。
 - 本地开发 = `link:` 指向 checkout，改完重启 Web GUI。
 
 ## 4. 本地开发闭环

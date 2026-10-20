@@ -31,17 +31,20 @@ DeepSeek Harness 插件。对应 Claude Code / Claude Desktop 那种「回合结
 github:xiaoshenming/dsh-next-hint#main
 ```
 
-CLI 等价写法：
+桌面 profile 由应用独占 —— `dsh plugin --profile desktop …` 会被 CLI 拒绝。
+命令行安装只适用于自管 profile（如 `web`）：
 
 ```bash
-dsh plugin --profile desktop add "github:xiaoshenming/dsh-next-hint#main"
+dsh plugin --profile web add "github:xiaoshenming/dsh-next-hint#main"
 ```
 
-装完**重启一次应用**（插件在启动时进花名册）。更新同理：在插件页点更新，或
+桌面端装完**重启一次应用**（插件在启动时进花名册）。更新：在插件页点更新，或
 
 ```bash
 cd ~/.dsh/profiles/desktop && pnpm update dsh-next-hint
 ```
+
+更新后如果新版本没生效，再重启一次应用。
 
 ## 怎么用
 

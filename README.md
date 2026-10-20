@@ -37,17 +37,20 @@ composer: visible, undoable, and never on the return key.
 github:xiaoshenming/dsh-next-hint#main
 ```
 
-CLI equivalent:
+The desktop profile is owned by the app — `dsh plugin --profile desktop …` is refused by the CLI.
+For a self-managed profile such as `web`:
 
 ```bash
-dsh plugin --profile desktop add "github:xiaoshenming/dsh-next-hint#main"
+dsh plugin --profile web add "github:xiaoshenming/dsh-next-hint#main"
 ```
 
-Restart the app once — plugins join the roster at boot. Update the same way:
+Restart the app once — plugins join the roster at boot. Update from the plugin page, or:
 
 ```bash
 cd ~/.dsh/profiles/desktop && pnpm update dsh-next-hint
 ```
+
+If the new version does not show up after an update, restart the app once.
 
 ## What you get
 
