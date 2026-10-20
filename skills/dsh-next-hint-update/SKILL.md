@@ -6,14 +6,18 @@ description: |
 
 # 更新插件 — dsh-next-hint 自我迭代
 
-仓库：`D:\project\chap2\dsh-next-hint`（远程待建，预期 `xiaoshenming/dsh-next-hint` `main`）
+仓库：本文件向上两级（仓库根）；远程 `xiaoshenming/dsh-next-hint` 的 `main`。
 默认简体中文。用户只说「更新」时不要再问流程，直接跑完整条。
+
+技能索引不扫已装插件的包内目录：agent 用 `read` 直接读本文件，或把它链到用户技能根
+（`~/.dsh/skills/dsh-next-hint-update`）。
 
 ## 0. 先看仓库状态（30 秒）
 
 ```sh
-git -C D:/project/chap2/dsh-next-hint status --short
-git -C D:/project/chap2/dsh-next-hint log --oneline -3
+git status --short
+git log --oneline -3
+git rev-parse --short HEAD origin/main   # 推之前确认有没有落后
 ```
 
 工作区可能带着用户自己的未提交改动：**不要 `git add -A` 一把混进功能提交**。
@@ -47,7 +51,7 @@ git -C D:/project/chap2/dsh-next-hint log --oneline -3
 ## 4. 改 / 测
 
 ```sh
-node "C:/Users/123/.dsh/dsh-runtimes/dsh-primary-runtime/dependencies/node/bin/node.exe" --test
+node --test
 ```
 
 - 新逻辑必须有单测；失败路径同样。
@@ -59,8 +63,15 @@ node "C:/Users/123/.dsh/dsh-runtimes/dsh-primary-runtime/dependencies/node/bin/n
 1. `CHANGELOG.md` 在 `## [Unreleased]` 下按 Added / Changed / Fixed 记一笔。
 2. 改版本号：加了用户可见能力 → minor，只修 bug → patch。
 3. 更新受影响的文档（架构变了还要加 ADR）。
-4. `git push origin main`；本地桌面端在「设置 → 插件 → 本插件 → 更新」验证一遍。
-5. 用中文汇报：扫了什么、改了什么、怎么验证的、还没做什么。
+4. 提交（不改全局 git 配置；作者与仓库既有提交一致）：
+   ```sh
+   git -c user.name=xiaoshenming -c user.email=xiaoshenming@users.noreply.github.com commit -m "<type>(<scope>): <english subject>"
+   git push origin main
+   gh run list --repo xiaoshenming/dsh-next-hint --limit 1   # CI 必须绿
+   ```
+5. 回帖只发在对口的帖（自己的发布帖 / 有人提问的帖）；已经有准确答复的帖不再补刀。
+6. 本地桌面端在「设置 → 插件 → 本插件 → 更新」验证一遍；用中文汇报：扫了什么、改了什么、
+   怎么验证的、还没做什么。
 
 ## 合同（不可破）
 

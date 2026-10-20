@@ -36,7 +36,8 @@
 5. 生成（`src/generate.mjs`）：一笔独立请求（system 要求只输出一句可直接发送的话），
    长度受 `maxHintChars`，超时 `timeoutMs`；路由默认跟随会话最近一次请求的 `{ provider, model }`。
 6. 响应：`200 { hint }` / `204`（没有建议）/ `4xx`（拒绝：来源不对、会话不存在）。
-7. 渲染：建议条出现（`aria-live="polite"`）；用户开始打字 / 切换会话 / 采纳 / Esc → 消失。
+7. 渲染：建议条出现（`aria-live="polite"`）；用户开始打字 / 切换会话 / 采纳 → 消失。
+   Esc 关闭与输入法组合期守卫仍是阶段 3 的任务（见 [OPEN-QUESTIONS.md](OPEN-QUESTIONS.md) C5）。
 8. 采纳：`captureInsertion()` 取当前位置 → `insertText(hint, span)` → 成功则收起建议条并把焦点交回编辑器。
 
 ## 3. 宿主半边职责
@@ -91,7 +92,9 @@ input.actions.insertText(text, span);             // 返回 true 才算成功
 | --- | --- | --- |
 | 没有可用模型路由 | 无建议 | `204` + warn 一次，冷却期内不再重试 |
 | 模型超时 / 429 | 无建议 | 记 metric，退避 |
-| 输出为空 / 太长 / 带多余 Markdown | 无建议 | 丢弃，不重试本轮 |
+| 输出为空 / 太长 / 带多余 Markdown | 无建议 | 丢弃；只对「空/拒答」重问一次，仍不合规则放弃 |
+| 截断于 `max-tokens` | 可能仍有建议 | 首行合规则照常采纳，不再整条丢弃 |
+| 浏览器中途离开 | 宿主不再白跑 | `res.close` 中止辅助请求并立刻释放单飞闸门 |
 | 用户已在打字 | 建议不出现或立即消失 | 发请求前判空草稿；渲染前比对 `draftRev` |
 | 会话切换 | 建议跟着清空 | 以 `sessionId` 为键 |
 | 宿主版本不兼容（无 facade / 无槽位） | 功能整体不启用 | 启动时探测，写一条 warn |

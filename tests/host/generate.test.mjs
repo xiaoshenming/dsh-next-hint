@@ -54,7 +54,20 @@ function fakes({ chunks = [], finish = { kind: "stop" }, blocks = [{ type: "text
           return blocks;
         }
       },
-      deadline: () => ({ signal: new AbortController().signal, [Symbol.dispose]() {} }),
+      deadline: (signal) => {
+      const controller = new AbortController();
+      const onAbort = () => controller.abort(signal?.reason);
+      if (signal === undefined) {
+        // no caller signal: a plain deadline
+      } else if (signal.aborted) onAbort();
+      else signal.addEventListener("abort", onAbort, { once: true });
+      return {
+        signal: controller.signal,
+        [Symbol.dispose]() {
+          signal?.removeEventListener("abort", onAbort);
+        },
+      };
+    },
     },
   };
 }
@@ -87,9 +100,17 @@ test("requestHint asks for the cheapest reasoning level", async () => {
   assert.deepEqual(noEfforts.configured[0], { kept: true }, "a model without effort levels is left alone");
 });
 
-test("requestHint refuses a non-stop finish", async () => {
-  const { deps } = fakes({ finish: { kind: "max-tokens" } });
-  assert.deepEqual(await requestHint(deps, base), { ok: false, reason: "finish-max-tokens" });
+test("requestHint keeps a usable line from a truncated finish", async () => {
+  const truncated = fakes({ finish: { kind: "max-tokens" }, blocks: [{ type: "text", text: "run the tests" }] });
+  assert.deepEqual(await requestHint(truncated.deps, base), { ok: true, hint: "run the tests" });
+
+  const nothingUsable = fakes({ finish: { kind: "max-tokens" }, blocks: [] });
+  assert.deepEqual(await requestHint(nothingUsable.deps, base), { ok: false, reason: "finish-max-tokens" });
+});
+
+test("requestHint refuses a finish that cannot carry a hint", async () => {
+  const { deps } = fakes({ finish: { kind: "tool-calls" } });
+  assert.deepEqual(await requestHint(deps, base), { ok: false, reason: "finish-tool-calls" });
 });
 
 test("requestHint refuses empty output", async () => {

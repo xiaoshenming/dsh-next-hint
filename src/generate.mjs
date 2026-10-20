@@ -102,14 +102,17 @@ export async function requestHint(deps, options) {
     for await (const chunk of stream) assembler.push(chunk);
     const finish = assembler.finish;
     const kind = finish === undefined ? "unknown" : finish.kind;
-    if (kind !== "stop") return { ok: false, reason: `finish-${kind}` };
+    // A max-tokens cut still carries the first line; a tool call or an error
+    // finishes without one, and those stay refused.
+    if (kind !== "stop" && kind !== "max-tokens") return { ok: false, reason: `finish-${kind}` };
     const text = assembler
       .blocks()
       .filter((block) => block.type === "text" && typeof block.text === "string")
       .map((block) => block.text)
       .join(" ");
     const hint = cleanHint(text, options.maxHintChars);
-    return hint === "" ? { ok: false, reason: "empty" } : { ok: true, hint };
+    if (hint === "") return { ok: false, reason: kind === "stop" ? "empty" : `finish-${kind}` };
+    return { ok: true, hint };
   } catch (error) {
     const code = typeof error === "object" && error !== null ? /** @type {any} */ (error).code : undefined;
     if (typeof code === "string" && code !== "") return { ok: false, reason: code };

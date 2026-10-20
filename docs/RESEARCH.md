@@ -25,7 +25,7 @@
 
 ## 3. 市场扫描（结论：没有同类）
 
-`https://dsh-market.com/manifest/plugins.json` → 142 个插件，按
+`https://dsh-market.com/manifest/plugins.json` → 143 个插件（`generated: 2026-10-20`），按
 `suggest | 推荐 | 补全 | ghost | auto.complete | next.prompt | 提示` 逐条过滤，无同类。
 最接近的三个（都不是我们要做的）：
 
@@ -37,16 +37,30 @@
 
 ### 3.1 复核（2026-10-20，发布当天）：出现了同类
 
-市场清单里仍然没有，但官方 Discussions 里已经有人做了几乎同款：
+市场清单里仍然没有这三方中的任何一个，但官方 Discussions 里已经有人做了几乎同款：
 
 | 项目 | 做法 | 与我们的差异 |
 | --- | --- | --- |
-| [`dsh-composer-prediction`](https://github.com/deepseek-ai/deepseek-harness/discussions/10053)（2026-10-17） | 回合结束 → 一笔辅助请求 → 灰字画在 `conversation.input.overlay`；自带设置页与配置持久化 RPC；按会话缓存建议 | 我们：触发在浏览器（`session.running` 真→假）、宿主无状态（一次 POST）、渲染在 `conversation.composer.dock` 槽位 + 自绘绝对定位节点、配置走宿主 schemastery |
+| [`dsh-composer-prediction`](https://github.com/deepseek-ai/deepseek-harness/discussions/10053) `0.7.6`（2026-10-19） | 回合结束 → 一笔辅助请求 → 灰字画在 `conversation.input.overlay`；自带设置页与配置持久化 RPC；**按会话缓存建议**（切回来立即恢复、不重发请求）；**Esc 关闭**；按 `session + turn` 去重；序列守卫丢弃迟到响应 | 我们：触发在浏览器（`session.running` 真→假）、宿主无状态（一次 POST）、渲染在 `conversation.composer.dock` 槽位 + 自绘绝对定位节点、配置走宿主 schemastery；**没有**跨会话缓存（切换即丢）、**没有** Esc（见 OPEN-QUESTIONS C5） |
 
 两边在「复用 `ctx.llm`、推理档压到最低、绝不上屏草稿」三点上独立收敛到同一结论 —— 这说明设计的约束抓对了。
 
 **共存问题（写进 README）**：两个插件都会往同一个输入框画灰字，也都会每轮各花一笔模型调用；
 同时装会出现两条重叠建议。谁先检测「已有 ghost 在场」谁就能让出，目前两边都没做。
+
+### 3.2 不是同类，但会撞在同一块屏幕上：`dsh-input-assist`
+
+[`dsh-input-assist`](https://github.com/deepseek-ai/deepseek-harness/discussions/6313)（`0.7.1`）做的是**打字时的续写**
+（Copilot 式、光标后内联、逐词 Tab、流式渐显），以及中英错别字检查；不是「回合结束后的下一句」。
+两者场景基本不重叠：
+
+| 时刻 | `dsh-input-assist` | `dsh-next-hint` |
+| --- | --- | --- |
+| 你正在打字 | 续写**这一句** | 不出（草稿非空） |
+| 回合结束、框是空的 | 停笔 800ms 后出 | 出一整句**下一句** |
+
+唯一重叠是「空框停笔」：可能同时看到两条 ghost。真撞上就关掉其中一个的开关 ——
+一个管「把这句写完」，一个管「下一句说什么」。
 
 ## 4. 已核实的缝合点（每条都能复查）
 
@@ -146,6 +160,37 @@ input.insertReference(quoteChip, { start, end, draftRev });
 
 **这些结论改变了设计**：见 [AD-0004](adr/0004-client-triggered-request.md)（判定在浏览器、一次请求-响应，SSE 与宿主轮次订阅取消）
 与 [AD-0005](adr/0005-rendering-seams.md)（槽位优先，`dock` 取代「DOM 注入」成为 M1 首选）。
+
+### 4.8 首跑实测：灰字为什么「有时有、有时没有」
+
+环境：DSH Desktop `0.2.1-rc.2`；另起一个隔离的 `web` profile（`dsh web --no-open --port <port>`，
+`DSH_HOME` 指向临时目录），插件用 `link:` 装进去，用 headless Chrome + CDP 驱动真实会话。
+
+观测手段（不靠猜）：
+
+- 浏览器侧：`console.debug("[next-hint] …")` 与锚点上的 `data-next-hint-state`；
+- 宿主侧：`204` 响应头 `x-next-hint-reason`。
+
+结果（同一会话、四条普通回合）：
+
+| 回合 | 结果 | 原因 |
+| --- | --- | --- |
+| 用一句话解释什么是栈 | `shown:11` | 正常 |
+| 现在几点了 | `reply:204 empty` | 模型原样回了 `NONE`（base64 `Tk9ORQ`） |
+| 谢谢 | `reply:204 empty` | 同上 |
+| 给我一条整理桌面文件的建议 | `shown:20` | 正常 |
+
+**根因不是客户端竞态，而是系统指令自己留的逃逸口**：`If nothing sensible follows, reply with the single word: NONE`。
+短对话、寒暄、纯问答时模型频繁选择拒答；`cleanHint` 按约定把 `NONE` 丢掉 → `204 empty` → 没有灰字。
+
+修复与复测：
+
+1. 指令里删掉 `NONE`，改为「即使回合很短也要给一条具体的下一句」；
+2. 收到空/拒答时用更严格的指令**再问一次**；
+3. `max-tokens` 截断但有可用首行时照常采纳。
+
+同一组提示词（含上文两条原本拒答的）复测 **4/4 都出灰字**。另外在同一环境确认：
+新会话第一轮结束后 dock 槽位挂载并会补发一次请求；`Tab` 采纳会把整句写进草稿；一打字灰字立刻消失。
 
 ## 5. 外部调研
 

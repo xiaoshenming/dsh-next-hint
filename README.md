@@ -57,7 +57,10 @@ cd ~/.dsh/profiles/desktop && pnpm update dsh-next-hint
 | `Tab` with focus in the composer | The sentence lands in the draft, caret at its end, **not sent** |
 | You start typing | The ghost disappears |
 | You switch sessions | The ghost is dropped |
-| No route / timeout / nothing to say | Nothing at all — the correct outcome |
+| Two declines / timeout / no route | Nothing at all — the correct outcome |
+
+A model that answers "nothing to suggest" is asked once more with a stricter
+instruction before the plugin gives up: one refusal never blanks the whole turn.
 
 Tab only fires when no candidate menu owns it: with the `/` or `@` menu open,
 Tab still belongs to the menu.
@@ -110,16 +113,22 @@ Deliberate choices:
 
 ## Related work
 
-The community already has a plugin built on the same idea:
-[Composer predictions (`dsh-composer-prediction`)](https://github.com/deepseek-ai/deepseek-harness/discussions/10053).
-Both turn "a turn settled" into one auxiliary request and a ghost line; the seams differ
-(they mount the overlay slot and ship their own settings page, this one uses the official
-dock slot and a stateless host POST). **Do not install both** — you would get two
-overlapping ghosts and two auxiliary calls per turn.
+Two neighbouring plugins exist; neither is the same tool, but both can paint on the same
+composer:
+
+- **Same idea**: [Composer predictions (`dsh-composer-prediction`)](https://github.com/deepseek-ai/deepseek-harness/discussions/10053).
+  Both turn "a turn settled" into one auxiliary request and a ghost line; the seams differ
+  (they mount the overlay slot, ship their own settings page, cache per session and dismiss
+  with Esc; this one uses the official dock slot and a stateless host POST).
+  **Do not install both** — two overlapping ghosts and two auxiliary calls per turn.
+- **Complementary**: [`dsh-input-assist`](https://github.com/deepseek-ai/deepseek-harness/discussions/6313)
+  completes *the sentence you are typing* and checks typos; this plugin suggests *the next
+  message after a turn*. The only overlap is an idle empty composer — if you see two ghosts
+  there, turn one of them off.
 
 ## Compatibility
 
-- Measured on **DSH Desktop `0.2.1-rc.2` (Windows)**. The host half needs
+- Measured on **DSH Desktop `0.2.1-rc.2` (Windows)** and the same version's **web profile (macOS)**. The host half needs
   `ctx.llm`, `ctx.sessions`, and `ctx.webServer.register`; the browser half needs
   the `conversation.composer.dock` slot and the composer input facade.
 - Still `0.x`: if upstream moves those seams, the ghost breaks first. Its position
@@ -132,7 +141,7 @@ overlapping ghosts and two auxiliary calls per turn.
 ## Development
 
 ```bash
-node --test      # 45 tests, node:test only, zero runtime dependencies
+node --test      # 49 tests, node:test only, zero runtime dependencies
 ```
 
 Pure logic lives in `src/` (no cordis, no official packages, no DOM); seams live

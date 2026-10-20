@@ -147,26 +147,31 @@ export function resolveRoute(session, config) {
   return {};
 }
 
+/** One retry when the model declines, so a single refusal cannot swallow the turn. */
+const HINT_ATTEMPTS = 2;
+
 /**
  * System instruction for the hint call.
  * @param {"zh" | "en" | undefined} locale
  * @param {string} workspace
  * @param {number} maxChars
+ * @param {number} [attempt] - 1 for the first ask, 2 after a refusal.
  * @returns {string}
  */
-export function systemInstruction(locale, workspace, maxChars) {
+export function systemInstruction(locale, workspace, maxChars, attempt = 1) {
   const language = locale === "zh" ? "Simplified Chinese" : locale === "en" ? "English" : "the language of the conversation";
-  return [
+  const lines = [
     "You help a user of a coding assistant decide what to say next.",
     `Write the single most useful next message the human could send, in ${language}.`,
     "It must be a ready-to-send prompt from the human to the assistant, never a question to the human and never an explanation.",
     `Keep it under ${maxChars} characters, one line, no quotes, no markdown, no bullet, no trailing punctuation other than what a sentence needs.`,
     workspace === "" ? "" : `The workspace is ${workspace}.`,
     "Prefer continuing the work in progress (verify a change, run its test, fix a failure, commit) over inventing new work.",
-    "If nothing sensible follows, reply with the single word: NONE",
-  ]
-    .filter((line) => line !== "")
-    .join("\n");
+    "Always answer with one concrete next message the human could send, even after a short or social turn.",
+    "Never decline, never explain, and never answer with a placeholder such as NONE.",
+  ];
+  if (attempt > 1) lines.push("Your previous reply was not a usable suggestion. Answer again with one concrete next message, and nothing else.");
+  return lines.filter((line) => line !== "").join("\n");
 }
 
 /**
@@ -211,6 +216,13 @@ export function createHintHandler(deps) {
       if (!ledger.begin(parsed.request.sessionId, startedAt, config.perSessionCooldownMs, config.enabled)) {
         return end(res, 204, "gated");
       }
+      // A browser that leaves mid-call must free the session's single flight:
+      // the closed response is the only reliable disconnect signal here.
+      const disconnect = new AbortController();
+      const onClose = () => {
+        if (res.writableEnded !== true) disconnect.abort();
+      };
+      res.on?.("close", onClose);
       try {
         const transcript = buildTranscript(toSamples(session.deriveMessages()), {
           maxTurns: config.maxTurns,
@@ -218,24 +230,33 @@ export function createHintHandler(deps) {
         });
         if (transcript.trim() === "") return end(res, 204, "no-context");
 
-        const result = await requestHint(
-          { ...llmSeams, prepareCall: llm.prepareCall.bind(llm) },
-          {
-            route: resolveRoute(session, config),
-            system: systemInstruction(parsed.request.locale, typeof session.cwd === "string" ? session.cwd : "", config.maxHintChars),
-            transcript,
-            sessionId: parsed.request.sessionId,
-            timeoutMs: config.timeoutMs,
-            maxOutputTokens: config.maxOutputTokens,
-            maxHintChars: config.maxHintChars,
-          },
-        );
+        const route = resolveRoute(session, config);
+        const workspace = typeof session.cwd === "string" ? session.cwd : "";
+        let result;
+        for (let attempt = 1; attempt <= HINT_ATTEMPTS; attempt += 1) {
+          result = await requestHint(
+            { ...llmSeams, prepareCall: llm.prepareCall.bind(llm) },
+            {
+              route,
+              system: systemInstruction(parsed.request.locale, workspace, config.maxHintChars, attempt),
+              transcript,
+              sessionId: parsed.request.sessionId,
+              timeoutMs: config.timeoutMs,
+              maxOutputTokens: config.maxOutputTokens,
+              maxHintChars: config.maxHintChars,
+              signal: disconnect.signal,
+            },
+          );
+          const retry = !result.ok && result.reason === "empty" && attempt < HINT_ATTEMPTS && !disconnect.signal.aborted;
+          if (!retry) break;
+        }
         if (!result.ok) {
-          logger.warn(`next-hint: no suggestion (${result.reason})`);
+          if (result.reason !== "aborted") logger.warn(`next-hint: no suggestion (${result.reason})`);
           return end(res, 204, result.reason);
         }
         return json(res, 200, { hint: result.hint });
       } finally {
+        res.off?.("close", onClose);
         ledger.end(parsed.request.sessionId, now());
       }
     } catch (error) {

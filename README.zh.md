@@ -51,7 +51,10 @@ cd ~/.dsh/profiles/desktop && pnpm update dsh-next-hint
 | 光标在输入框里，按 `Tab` | 整句写进草稿，光标落在句末，**不发送** |
 | 你开始打字 | 灰字立刻消失 |
 | 切到别的会话 | 灰字跟着清掉 |
-| 模型没话说 / 超时 / 没配路由 | 什么都没有（这就是正确行为） |
+| 模型两次都没给出建议 / 超时 / 没配路由 | 什么都没有（这就是正确行为） |
+
+模型偶尔会想回一句「没什么可建议的」。插件不会就此作罢：它立刻用更严格的指令**再问一次**，
+两次都不给才安静下来 —— 一次拒答不该让整轮空着。
 
 Tab 只在「没有别的候选菜单占用它」时生效 —— `/`、`@` 菜单打开时，Tab 仍然是菜单的键。
 
@@ -97,13 +100,19 @@ Tab 只在「没有别的候选菜单占用它」时生效 —— `/`、`@` 菜�
 
 ## 同类
 
-社区里已经有一个思路相同的插件：[Composer predictions（`dsh-composer-prediction`）](https://github.com/deepseek-ai/deepseek-harness/discussions/10053)。
-两边都是「回合结束 → 一笔辅助请求 → 灰字 → Tab 采纳」，差异在接缝（它挂 overlay 槽位并自带配置页，
-我们走官方 dock 槽位 + 宿主无状态的一次 POST）。**别同时装**：会画出两条重叠建议，还每轮多花一笔调用。
+社区里有两个相关插件，**都不是同款，但会撞在同一块屏幕上**：
+
+- **思路相同**：[Composer predictions（`dsh-composer-prediction`）](https://github.com/deepseek-ai/deepseek-harness/discussions/10053)。
+  两边都是「回合结束 → 一笔辅助请求 → 灰字 → Tab 采纳」，差异在接缝（它挂 overlay 槽位、自带配置页、
+  按会话缓存建议、Esc 关闭；我们走官方 dock 槽位 + 宿主无状态的一次 POST）。
+  **别同时装**：会画出两条重叠建议，还每轮多花一笔调用。
+- **场景互补**：[输入补全（`dsh-input-assist`）](https://github.com/deepseek-ai/deepseek-harness/discussions/6313)。
+  它管「你正在打字的这一句」的续写与错别字，我们管「回合结束后的下一句」。
+  只有「空框停笔」时可能同时看到两条 ghost，真撞上就关掉其中一个的开关。
 
 ## 兼容性
 
-- 实测环境：**DSH Desktop `0.2.1-rc.2`（Windows）**。宿主半边依赖 `ctx.llm` / `ctx.sessions` /
+- 实测环境：**DSH Desktop `0.2.1-rc.2`（Windows）** 与同版本的 **web profile（macOS）**。宿主半边依赖 `ctx.llm` / `ctx.sessions` /
   `ctx.webServer.register`；浏览器半边依赖 `conversation.composer.dock` 槽位与输入框 facade。
 - 版本仍是 `0.x`：上游一旦改这些缝，灰字可能先坏。灰字定位依赖编辑器 DOM 的
   `[data-input-scroll]` 结构，找不到锚点时会安静地不出。
@@ -113,7 +122,7 @@ Tab 只在「没有别的候选菜单占用它」时生效 —— `/`、`@` 菜�
 ## 开发
 
 ```bash
-node --test      # 45 条，只用 node:test，零运行时依赖
+node --test      # 49 条，只用 node:test，零运行时依赖
 ```
 
 纯逻辑在 `src/`（不 import cordis、不 import 官方包、不碰 DOM），接缝在 `plugin/`。

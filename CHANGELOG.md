@@ -3,11 +3,25 @@
 All notable changes to this project are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versioning: SemVer.
 
+## [0.1.1] - 2026-10-20
+
+### Fixed
+
+- Hints no longer vanish after a short or social turn: the instruction stopped
+  offering a `NONE` escape hatch, and a declined answer is re-asked once with a
+  stricter instruction. Measured on DSH Desktop 0.2.1-rc.2: 2 of 4 turns produced
+  a hint before the change, 4 of 4 after.
+- A usable first line survives a `max-tokens` cut instead of being dropped with
+  the whole answer.
+- A browser that leaves mid-call now aborts the auxiliary request and frees the
+  per-session gate, so the next turn can no longer be refused as `gated`.
+
 ### Documented
 
-- Prior art: `dsh-composer-prediction` (2026-10-17) solves the same problem with a different
-  seam set. RESEARCH `3.1 records the comparison, and both READMEs warn that installing both
-  paints two overlapping ghosts.
+- Prior art re-checked on 2026-10-20: `dsh-composer-prediction@0.7.6` adds per-turn dedupe,
+  session-switch restore and Esc dismiss with the same seam family; `dsh-input-assist@0.7.1`
+  is complementary (typing completion), not a competitor. RESEARCH `3.1/3.2 records both
+  comparisons, and READMEs warn which pair must not be installed together.
 
 ## [0.1.0] - 2026-10
 
