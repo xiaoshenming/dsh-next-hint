@@ -1,6 +1,6 @@
 # AD-0003 建议条的放置：DOM 注入优先
 
-- 状态：已接受（2026-10），待 C2 实测确认
+- 状态：**已被 [AD-0005](0005-rendering-seams.md) 取代**（2026-10，源码核实后）
 - 相关：[ARCHITECTURE.md](../ARCHITECTURE.md) `5、[OPEN-QUESTIONS.md](../OPEN-QUESTIONS.md) C2
 
 ## 背景

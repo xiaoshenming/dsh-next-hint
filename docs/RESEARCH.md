@@ -110,6 +110,30 @@ input.insertReference(quoteChip, { start, end, draftRev });
 **宿主半边**判定轮次结束 → 组装最小上下文 → `ctx.llm` 辅助请求 → 得到一句建议 →
 挂在插件自己的路由上（SSE 或轮询）→ **浏览器半边**渲染建议条 → 采纳时走 4.3 的 `insertText`。
 
+### 4.7 源码复核（`0.2.1-rc.2`，逐条对照 file:line）
+
+> 复核方式：直接读本机 `D:\DeepSeek Harness\resources\app.asar\dsh\node_modules\@deepseek-ai\` 下的发行版产物。
+> 只记「能指到行」的结论；没跑起来的一律标成「待首跑」。
+
+| # | 结论 | 出处 |
+| --- | --- | --- |
+| 1 | 输入区域的公开子槽位不止三个：`conversation.composer.bar` 声明了 `attachments`(single)、`overlay`(list)、`permission`(single)、`left`(list)、`plan`(single)、`right`(list)、`model`(single)、`activity`(single)、**`dock`(list)**，作用域都是 `session`（`attachments` 为 `session-maybe`） | `dsh-client-ui-conversation/lib/client.js` L19880-19920 |
+| 2 | `conversation.composer.dock` 渲染在**输入卡下方**那一行，与上下文占用环同排（`.dock{display:flex;gap:12px;padding-top:4px}`） | 同文件 L19161-19168、L18703 |
+| 3 | `conversation.input.overlay` 是卡片顶边的绝对定位浮层（`.overlayAnchor{height:0;position:absolute;inset:0 0 auto}`），`/`、`@` 菜单就在里面 | 同文件 L18997-19001；`dsh-client-ui-input-trigger/lib/client.js` L1913 |
+| 4 | 输入框自带**行内 ghost**：`.input p:last-child:after{content:var(--dsh-composer-hint)}`，变量由 `DraftEditor` 的 `hint` prop 写入（JSON.stringify），来源只有「已认领的 `/命令`」的 `input.claim.hint` | 同文件 L18703、L18141-18172、L18964-18969 |
+| 5 | 输入框公共动作面：`captureInsertion()` / `insertText(text, span)` / `setDraft(text)` / `submit()`；快照字段 `draft, attachmentIds, draftRev, phase, claim?, occurrences, queue` | 同文件 L14912-14937、L15676-15686 |
+| 6 | 客户端插件形状：`exports.inject` 是**运行时服务名**；`ctx.inject([...], scope => ...)`；`scope.slots.inject(name, () => scope.slots.register({ name, id, order, locale, inject }, View))`；`ctx.effect(() => ctx.locale.register(NS, { zh, en }))` | `dsh-client-ui-input-trigger/lib/client.js` L1894-1941 |
+| 7 | 客户端 bundle 可直接 `require("react")` / `require("react/jsx-runtime")` / `require("react-dom")`，第三方包同样如此 —— 无需构建步骤也能写 UI | 同文件 L1-10；`@linxin666/dsh-web-all/lib/client.js` 首行 |
+| 8 | 插件可自行注入样式：`document.createElement("style")` + `dataset.pluginCss` 去重（官方包就是这么干的） | `dsh-client-ui-conversation/lib/client.js` L19176-19181 |
+| 9 | 宿主辅助请求：`ctx.llm.prepareCall({provider, model, maxTokens}, signal, adjust)` → `{ config, stream(options) }`；`createUserMessage` + `BlockAssembler` 来自 `@deepseek-ai/dsh-llm`；超时用 `deadline(signal, ms, code)` | `dsh-session-title-llm/lib/index.js`（`executeSessionTitleLlm`） |
+| 10 | 宿主路由：`ctx.webServer.register({ kind: "exact", path, handler })` → disposer；重复注册抛错；匹配 exact → 最长前缀 → fallback | `dsh-host-webserver/lib/index.js` L326-333、L381-394 |
+| 11 | 宿主能按 `sessionId` 取会话：`ctx.sessions.get(id)` / `list()`；`session.deriveMessages()` 给出派生消息历史，`session.requestHeader()` 记录上次请求路由，`session.snapshotEvents(fromSeq)` 给窗口 | `dsh-session/lib/index.js` L1980-1987、L1672-1687、L1612、L1452 |
+| 12 | 会话事件里轮次用的是 `turn/start` 与 `turn/end` | `dsh-session/lib/index.js`（事件字面量） |
+| 13 | 浏览器侧有会话运行位：`session.running` + `handleRunning(running)` 同步 | `dsh-api-session-controller/lib/types/client/sessions/session.js` L54、L438-448 |
+
+**这些结论改变了设计**：见 [AD-0004](adr/0004-client-triggered-request.md)（判定在浏览器、一次请求-响应，SSE 与宿主轮次订阅取消）
+与 [AD-0005](adr/0005-rendering-seams.md)（槽位优先，`dock` 取代「DOM 注入」成为 M1 首选）。
+
 ## 5. 外部调研
 
 | 来源 | 采纳了什么 |

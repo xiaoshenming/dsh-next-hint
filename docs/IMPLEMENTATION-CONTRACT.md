@@ -34,10 +34,9 @@ git worktree add ../dsh-next-hint-wt/client -b feat/client
 | 路径 | owner 泳道 | 说明 |
 | --- | --- | --- |
 | `package.json`、`cordis.patch.yml` | **main**（主控独占） | 任何改动都要主控点头 |
-| `plugin/index.mjs`、`plugin/routes.mjs` | **host** | 宿主半边入口与路由 |
-| `src/trigger.mjs`、`src/context.mjs`、`src/generate.mjs`、`src/store.mjs` | **host** | 纯函数 |
-| `plugin/client.js` | **client** | 浏览器半边入口（建议条 + 采纳） |
-| `src/feed.mjs` | **client** | 建议流订阅 |
+| `plugin/index.mjs`、`plugin/routes.mjs` | **host** | 宿主半边入口与 `POST /api/next-hint` |
+| `src/trigger.mjs`、`src/context.mjs`、`src/generate.mjs` | **host** | 纯函数（`generate.mjs` 的官方依赖全部注入） |
+| `plugin/client.js` | **client** | 浏览器半边：结算判定 + 行内 ghost + 采纳 + 清理 |
 | `src/contracts/` | **main**（主控独占） | 跨泳道接口冻结后不许单方面改 |
 | `tests/host/`、`tests/client/`、`tests/contracts/` | 同名泳道 | 谁写谁测 |
 | `tests/smoke.test.mjs` | **main** | 脚手架体检 |
@@ -51,10 +50,12 @@ git worktree add ../dsh-next-hint-wt/client -b feat/client
 
 | 契约 | 内容 | 冻结时间 |
 | --- | --- | --- |
-| `HintRequest` | `{ sessionId, turnId, samples[], budget }` | M1 结束 |
-| `HintResult` | `{ ok: true, hint, ... } | { ok: false, reason }` | M1 结束 |
-| `SuggestionFeed` | `subscribe(onHint) → unsubscribe` | M1 结束 |
-| `ComposerBridge` | `canInsert(input) / insert(input, text)` | M1 结束 |
+| `HintRequest` | `{ sessionId, locale }` —— 浏览器 → 宿主，**不含会话原文** | M1 结束 |
+| `HintResult` | `{ hint }` / `204` / `4xx`（见 [ARCHITECTURE.md](ARCHITECTURE.md) `2） | M1 结束 |
+| `HintPolicy` | `shouldRequest(state, session) → boolean`（纯函数；两侧共享同一套判定语义） | M1 结束 |
+| `ComposerBridge` | `captureInsertion(input) / insertText(input, text, span)` | M1 结束 |
+
+> `SuggestionFeed`（`subscribe(onHint)`）随 [AD-0004](adr/0004-client-triggered-request.md) 一起作废：不再有 SSE 推送通道。
 
 **冻结后的修改流程**：改契约 = 改 [ARCHITECTURE.md](ARCHITECTURE.md) + 新增 ADR + 通知全部泳道 rebase。
 

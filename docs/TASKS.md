@@ -14,25 +14,34 @@
 
 **不许并行**：这一阶段的结论会改架构，并行只会返工。
 
-| # | 任务 | 产物 | 验收 |
+> 2026-10 复核：H1 / H2 / H3 / C1 已用源码证据关闭（[RESEARCH](RESEARCH.md) `4.7），设计随之改为
+> [AD-0004](adr/0004-client-triggered-request.md) / [AD-0005](adr/0005-rendering-seams.md)。
+> 剩下的是「首跑才知道」的项，不必再单独立阶段 —— 跟着竖切一起关。
+
+| # | 任务 | 产物 | 状态 |
 | --- | --- | --- | --- |
-| S-1 | 关闭 H1（轮次结算事件） | RESEARCH `4.7 新增一节 | 事件名 + 服务名 + payload + 3 行示例 |
-| S-2 | 关闭 H2（`ctx.llm` 辅助请求） | 同上 | 一次真实请求跑通 + 失败分类 |
-| S-3 | 关闭 H3（宿主路由） | 同上 | `curl` 拿到 JSON 与 SSE |
-| S-4 | 关闭 C1（客户端 facade） | 同上 | `insertText` 实测成功 |
-| S-5 | 关闭 C2（UI 锚点） | AD-0003 更新 | 三方案实测结论 |
-| S-6 | 冻结 `src/contracts/` | `src/contracts/*.mjs` + 类型注释 | 四条契约可被 import 且无实现 |
+| S-1 | H1 轮次结算事件 | 结论：宿主不再需要（AD-0004） | ✅ 关闭 |
+| S-2 | H2 `ctx.llm` 辅助请求 | RESEARCH `4.7 #9 | ✅ 签名关闭，首跑留 M2 |
+| S-3 | H3 宿主路由 | RESEARCH `4.7 #10 | ✅ 关闭 |
+| S-4 | C1 客户端 facade | RESEARCH `4.7 #5 #6 | ✅ 签名关闭，首跑留 M2 |
+| S-5 | C2 UI 放置 | AD-0005 | 🟡 改为「dock 观感实测」 |
+| S-6 | 冻结 `src/contracts/` | `src/contracts/*.mjs` + 类型注释 | ⬜ 待做（契约已按 AD-0004 改） |
+| S-7 | C4 Tab 与候选菜单的仲裁 | OPEN-QUESTIONS C4 | ⬜ 待做 |
+| S-8 | H4 宿主按 sessionId 取上下文 | OPEN-QUESTIONS H4 | ⬜ 待做 |
 
 ## 阶段 2 · 竖切（四条泳道并行）
 
 | 泳道 | 任务 | 产物 | 验收 |
 | --- | --- | --- | --- |
-| **host** | 结算 → 取样 → 生成 → 缓存 → 路由 | `plugin/index.mjs`、`plugin/routes.mjs`、`src/{trigger,context,generate,store}.mjs` | 宿主日志里能看到「生成了建议」；路由返回该建议 |
-| **client** | 建议流 → 建议条 → 采纳 | `plugin/client.js`、`src/feed.mjs` | 真实 GUI 里出现建议条，点击后草稿多出那句话 |
+| **host** | 路由 → 取样 → 生成 | `plugin/index.mjs`、`plugin/routes.mjs`、`src/{trigger,context,generate}.mjs` | `POST /api/next-hint` 能拿到一句话；失败路径返回 204 |
+| **client** | 结算判定 → 建议条 → 采纳 | `plugin/client.js`、`src/watch.mjs` | 真实 GUI 里轮次结束后出现建议条，点击后草稿多出那句话 |
 | **docs** | 把 spike 结论回填、写实现说明 | 对应文档 | 文档里没有「TODO 待验证」 |
 | **tests** | 假宿主 + 假 LLM + 失败路径 | `tests/host/`、`tests/client/` | 覆盖率覆盖 `6 全部失效模式 |
 
 并行前提：S-6 冻结完成；`host` 与 `client` 只通过契约通信，不互相 review 实现细节。
+
+**2026-10 进度**：两条泳道的第一版已落地（`plugin/routes.mjs`、`plugin/client.js` 及其 `src/` 纯函数，43 条单测绿）。
+剩下的是首跑验收：真机装一次、看 ghost 位置、确认 `deriveMessages()` 形状（H4）与 Tab 仲裁（C4）。
 
 ## 阶段 3 · 打磨
 
