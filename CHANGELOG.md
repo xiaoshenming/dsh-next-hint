@@ -3,6 +3,21 @@
 All notable changes to this project are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versioning: SemVer.
 
+## [0.1.2] - 2026-10-21
+
+### Fixed
+
+- The ghost no longer paints during an IME composition: the request gate and the
+  painted-hint validity check now read the editor's `data-composer-composing`
+  marker, so the settle window cannot paint into an active composition (guard
+  suggested by the `dsh-composer-prediction` author).
+
+### Documented
+
+- Corrected the related-work comparison after the prior-art author's reply: both
+  plugins decide in the browser and both prediction routes are stateless; the
+  differences are the mount slot, the settings page, the per-session cache and Esc.
+
 ## [0.1.1] - 2026-10-20
 
 ### Fixed

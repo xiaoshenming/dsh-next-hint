@@ -74,13 +74,13 @@
 
 ### C5 — Esc 关闭与输入法组合期的边界
 
-- 现状：`createEngine` 只处理 Tab；`Esc` 不关闭灰字，`compositionstart/end` 期间也没有显式状态机
-  （官方 contenteditable 会在组合期挂 `data-composer-composing`）。
-- 要回答：Esc 是否该同时中止在途请求？组合期结束后那一拍快照更新，会不会让灰字闪一下又消失？
-  （`dsh-composer-prediction` 与 `dsh-input-assist` 都被问过这个。）
+- 现状：`createEngine` 只处理 Tab；`Esc` 仍不关闭灰字。IME 组合期守卫已在 0.1.2 落地：
+  `composerOf()` 读 `data-composer-composing`，`requestable()` 遇到 `composing === true` 直接拒绝
+  （来源：`dsh-composer-prediction` 作者在 #10053 的回复）。
+- 要回答：Esc 是否该同时中止在途请求？组合期守卫在真实输入法下是否真的不闪（正常提交 / 取消 / Esc 三种结束）？
 - 怎么验：真实输入法下跑「组合中回合结束」和「灰字在场按 Esc」两种场景。
 - 算过：Esc 关闭；组合期不画；不闪。
-- 约束：`plugin/client.js` 已 299 行（合同上限 300），加逻辑前先把文件压到 250 行以内，或把可测纯函数先抽出来。
+- 约束：`plugin/client.js` 已 296 行（合同上限 300），再加逻辑前先压行数或把可测纯函数抽出来。
 
 ### C6 — 切回会话时要不要恢复灰字
 

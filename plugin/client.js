@@ -25,7 +25,7 @@ window.__ModuleLoader__.load({
     /** Empty and editable draft, i.e. worth a suggestion. */
     function requestable(state) {
       const phase = state?.phase;
-      return typeof state?.draft === "string" && state.draft.trim() === "" && (phase === "plain" || phase === "claimed");
+      return typeof state?.draft === "string" && state.draft.trim() === "" && state.composing !== true && (phase === "plain" || phase === "claimed");
     }
 
     /** A painted hint survives only while the draft is still the one it was made for. */
@@ -40,7 +40,7 @@ window.__ModuleLoader__.load({
       // The scroll wrapper's first child is the positioned box the editor sits
       // in (class names are hashed, the data attribute is not).
       const grow = root.querySelector("[data-input-scroll]")?.firstElementChild ?? null;
-      return { root, grow, placeholder: root.querySelector("[data-composer-placeholder]") };
+      return { root, grow, placeholder: root.querySelector("[data-composer-placeholder]"), composing: root.querySelector("[data-composer-composing]") !== null };
     }
 
     /** A visible candidate menu owns Tab; the ghost must never steal it. */
@@ -105,7 +105,7 @@ window.__ModuleLoader__.load({
 
       const snapshot = () => {
         try {
-          return input.state.getSnapshot();
+          return { ...input.state.getSnapshot(), composing: composerOf(anchor())?.composing === true };
         } catch {
           return { draft: "", draftRev: -1, phase: "inert" };
         }
@@ -120,7 +120,7 @@ window.__ModuleLoader__.load({
       }
 
       function hide() {
-        if (node !== null) node.remove();
+        node?.remove();
         node = null;
         hint = null;
         const parts = composerOf(anchor());
@@ -129,8 +129,8 @@ window.__ModuleLoader__.load({
 
       function show(text) {
         const parts = composerOf(anchor());
-        if (parts === null || parts.grow === null) return;
-        if (node !== null) node.remove();
+        if (parts?.grow == null) return;
+        node?.remove();
         node = paintGhost(parts.grow, text, t);
         if (parts.placeholder) parts.placeholder.style.visibility = "hidden";
         hint = { text };
@@ -139,10 +139,9 @@ window.__ModuleLoader__.load({
 
       function accept() {
         if (hint === null) return false;
-        const actions = input.actions ?? {};
-        const span = actions.captureInsertion?.();
-        if (span === undefined || span === null) return false;
-        if (actions.insertText?.(hint.text, span) !== true) return false;
+        const span = input.actions?.captureInsertion?.();
+        if (span == null) return false;
+        if (input.actions?.insertText?.(hint.text, span) !== true) return false;
         hide();
         input.focus?.();
         return true;
@@ -195,10 +194,8 @@ window.__ModuleLoader__.load({
         const state = snapshot();
         if (hint !== null && !stillValid(state, hint)) hide();
         if (!requestable(state)) {
-          if (abort !== null) {
-            abort.abort();
-            abort = null;
-          }
+          abort?.abort();
+          abort = null;
           return;
         }
         pump();

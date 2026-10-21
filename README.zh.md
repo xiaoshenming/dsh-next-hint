@@ -106,8 +106,8 @@ Tab 只在「没有别的候选菜单占用它」时生效 —— `/`、`@` 菜�
 社区里有两个相关插件，**都不是同款，但会撞在同一块屏幕上**：
 
 - **思路相同**：[Composer predictions（`dsh-composer-prediction`）](https://github.com/deepseek-ai/deepseek-harness/discussions/10053)。
-  两边都是「回合结束 → 一笔辅助请求 → 灰字 → Tab 采纳」，差异在接缝（它挂 overlay 槽位、自带配置页、
-  按会话缓存建议、Esc 关闭；我们走官方 dock 槽位 + 宿主无状态的一次 POST）。
+  两边都是「回合结束 → 浏览器侧判定 → 宿主无状态路由 → 灰字 → Tab 采纳」，差异在挂载点与缓存策略
+  （它挂 overlay 槽位、自带配置页、按会话缓存建议、Esc 关闭；我们走官方 dock 槽位、切走即丢）。
   **别同时装**：会画出两条重叠建议，还每轮多花一笔调用。
 - **场景互补**：[输入补全（`dsh-input-assist`）](https://github.com/deepseek-ai/deepseek-harness/discussions/6313)。
   它管「你正在打字的这一句」的续写与错别字，我们管「回合结束后的下一句」。

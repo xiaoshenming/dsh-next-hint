@@ -120,9 +120,10 @@ Two neighbouring plugins exist; neither is the same tool, but both can paint on 
 composer:
 
 - **Same idea**: [Composer predictions (`dsh-composer-prediction`)](https://github.com/deepseek-ai/deepseek-harness/discussions/10053).
-  Both turn "a turn settled" into one auxiliary request and a ghost line; the seams differ
+  Both turn "a turn settled" into one auxiliary request and a ghost line, both decide in the
+  browser and both post to a stateless host route; the seams differ
   (they mount the overlay slot, ship their own settings page, cache per session and dismiss
-  with Esc; this one uses the official dock slot and a stateless host POST).
+  with Esc; this one uses the official dock slot and drops the offer on a session switch).
   **Do not install both** — two overlapping ghosts and two auxiliary calls per turn.
 - **Complementary**: [`dsh-input-assist`](https://github.com/deepseek-ai/deepseek-harness/discussions/6313)
   completes *the sentence you are typing* and checks typos; this plugin suggests *the next

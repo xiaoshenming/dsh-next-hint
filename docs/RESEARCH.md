@@ -41,12 +41,19 @@
 
 | 项目 | 做法 | 与我们的差异 |
 | --- | --- | --- |
-| [`dsh-composer-prediction`](https://github.com/deepseek-ai/deepseek-harness/discussions/10053) `0.7.6`（2026-10-19） | 回合结束 → 一笔辅助请求 → 灰字画在 `conversation.input.overlay`；自带设置页与配置持久化 RPC；**按会话缓存建议**（切回来立即恢复、不重发请求）；**Esc 关闭**；按 `session + turn` 去重；序列守卫丢弃迟到响应 | 我们：触发在浏览器（`session.running` 真→假）、宿主无状态（一次 POST）、渲染在 `conversation.composer.dock` 槽位 + 自绘绝对定位节点、配置走宿主 schemastery；**没有**跨会话缓存（切换即丢）、**没有** Esc（见 OPEN-QUESTIONS C5） |
+| [`dsh-composer-prediction`](https://github.com/deepseek-ai/deepseek-harness/discussions/10053) `0.7.6`（2026-10-19） | 回合结束 → 一笔辅助请求 → 灰字画在 `conversation.input.overlay`；自带设置页与配置持久化 RPC；**按会话缓存建议**（切回来立即恢复、不重发请求）；**Esc 关闭**；按 `session + turn` 去重；序列守卫丢弃迟到响应 | 我们：**同样**浏览器侧判定（`session.running` 真→假）+ 宿主无状态 POST；差异在挂载点（官方 `conversation.composer.dock` 槽位 + 自绘绝对定位节点 vs overlay）、配置走宿主 schemastery（无自带设置页）、**没有**跨会话缓存（切换即丢）、**没有** Esc（见 OPEN-QUESTIONS C5） |
 
 两边在「复用 `ctx.llm`、推理档压到最低、绝不上屏草稿」三点上独立收敛到同一结论 —— 这说明设计的约束抓对了。
 
 **共存问题（写进 README）**：两个插件都会往同一个输入框画灰字，也都会每轮各花一笔模型调用；
 同时装会出现两条重叠建议。谁先检测「已有 ghost 在场」谁就能让出，目前两边都没做。
+
+2026-10-21 作者回复，更正了两点：他**也**在浏览器侧用 `useSession(running)` 判定，predict 路由**同样无状态**
+（有状态的只是设置用的 config RPC）；所以「浏览器判定 / 宿主无状态」不是差异，差异只在挂载点、设置页、会话缓存与 Esc。
+两边都没有跨插件检测，而且都在 document 级监听 keydown —— 同装时一个 Tab 可能同时采纳两条 ghost；
+想互让的话，最简单的共享信号是一个「已有 ghost 在场」的 DOM 属性。IME 方面他没有 `compositionend` 代码：
+可见性只看 composer store 的 `draft === ''`，组合文本已经反映在 store 里，所以不会闪；
+他建议在 `data-composer-composing` 置位期间直接抑制 —— 0.1.2 采纳了这条（见 4.8.1 与 OPEN-QUESTIONS C5）。
 
 ### 3.2 不是同类，但会撞在同一块屏幕上：`dsh-input-assist`
 
@@ -191,6 +198,17 @@ input.insertReference(quoteChip, { start, end, draftRev });
 
 同一组提示词（含上文两条原本拒答的）复测 **4/4 都出灰字**。另外在同一环境确认：
 新会话第一轮结束后 dock 槽位挂载并会补发一次请求；`Tab` 采纳会把整句写进草稿；一打字灰字立刻消失。
+
+### 4.8.1 IME 组合期守卫（0.1.2）
+
+按 `dsh-composer-prediction` 作者的建议：灰字在 IME 组合期一律不出现。
+实现落在两处纯检查上，不新增监听器：
+
+- `composerOf()` 读编辑器根上的 `data-composer-composing`，把 `composing` 带进结果；
+- `snapshot()` 把该标记并进输入快照，`requestable()` 遇到 `composing === true` 直接返回 false。
+
+于是请求闸门与「已画灰字是否仍有效」的检查都会在组合期关上，`compositionend` 之后由输入状态的自然发布会重新评估。
+**尚未做的**：真实输入法下逐帧复测（正常提交 / 取消 / 直接按 Esc 三种结束），以及 Esc 关闭本身 —— C5 仍开着。
 
 ## 5. 外部调研
 

@@ -51,6 +51,8 @@ test("only an empty editable draft is worth a request", async () => {
   assert.equal(requestable({ draft: "   ", phase: "plain" }), true);
   assert.equal(requestable({ draft: "x", phase: "plain" }), false);
   assert.equal(requestable({ draft: "", phase: "submitting" }), false);
+  assert.equal(requestable({ draft: "", phase: "plain", composing: true }), false, "an IME composition is not a request moment");
+  assert.equal(requestable({ draft: "", phase: "plain", composing: false }), true);
   assert.equal(requestable(undefined), false);
 });
 
@@ -61,6 +63,7 @@ test("a painted hint survives benign draft revisions and dies on typing", async 
   assert.equal(stillValid({ draft: "", phase: "plain", draftRev: 9 }, hint), true, "a revision bump is not the user typing");
   assert.equal(stillValid({ draft: "t", phase: "plain", draftRev: 4 }, hint), false);
   assert.equal(stillValid({ draft: "", phase: "submitting", draftRev: 4 }, hint), false);
+  assert.equal(stillValid({ draft: "", phase: "plain", composing: true }, hint), false, "composition hides a painted hint");
   assert.equal(stillValid({ draft: "", phase: "plain" }, null), false);
 });
 
@@ -72,6 +75,12 @@ test("the composer is found from the slot anchor, not from the document", async 
   };
   const anchor = { closest: (selector) => (selector === "[data-composer-dock]" ? { parentElement: rootEl } : null) };
   assert.equal(composerOf(anchor).grow, grow);
+  assert.equal(composerOf(anchor).composing, false);
+  const composingRoot = {
+    querySelector: (selector) => (selector === "[data-input-scroll]" ? { firstElementChild: grow } : selector === "[data-composer-composing]" ? {} : null),
+  };
+  const composingAnchor = { closest: () => ({ parentElement: composingRoot }) };
+  assert.equal(composerOf(composingAnchor).composing, true);
   assert.equal(composerOf(null), null);
   assert.equal(composerOf({ closest: () => null }), null);
 
