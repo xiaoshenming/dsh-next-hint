@@ -23,7 +23,10 @@
   ② 会话标题生成 ③ 无关词（"suggestedName" 之类）。
 - 不存在任何「回合结束后推荐下一句」的实现、配置项或槽位。
 
-## 3. 市场扫描（结论：没有同类）
+## 3. 市场扫描（清单内没有同类）
+
+> 这里的「没有同类」只覆盖**市场清单**与**官方代码**，不是全网结论：
+> 社区 Discussions 里的先例见 [3.1](#31-复核2026-10-20发布当天出现了同类)。
 
 `https://dsh-market.com/manifest/plugins.json` → 143 个插件（`generated: 2026-10-20`），按
 `suggest | 推荐 | 补全 | ghost | auto.complete | next.prompt | 提示` 逐条过滤，无同类。
