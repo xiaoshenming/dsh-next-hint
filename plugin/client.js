@@ -58,6 +58,7 @@ window.__ModuleLoader__.load({
       const node = document.createElement("span");
       const key = document.createElement("span");
       node.dataset.nextHint = "ghost";
+      node.dataset.composerGhost = "";
       node.setAttribute("aria-hidden", "true");
       node.textContent = text;
       key.dataset.nextHint = "hint-key";

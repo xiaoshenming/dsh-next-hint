@@ -41,17 +41,22 @@
 
 | 项目 | 做法 | 与我们的差异 |
 | --- | --- | --- |
-| [`dsh-composer-prediction`](https://github.com/deepseek-ai/deepseek-harness/discussions/10053) `0.7.6`（2026-10-19） | 回合结束 → 一笔辅助请求 → 灰字画在 `conversation.input.overlay`；自带设置页与配置持久化 RPC；**按会话缓存建议**（切回来立即恢复、不重发请求）；**Esc 关闭**；按 `session + turn` 去重；序列守卫丢弃迟到响应 | 我们：**同样**浏览器侧判定（`session.running` 真→假）+ 宿主无状态 POST；差异在挂载点（官方 `conversation.composer.dock` 槽位 + 自绘绝对定位节点 vs overlay）、配置走宿主 schemastery（无自带设置页）、**没有**跨会话缓存（切换即丢）、**没有** Esc（见 OPEN-QUESTIONS C5） |
+| [`dsh-composer-prediction`](https://github.com/deepseek-ai/deepseek-harness/discussions/10053) `0.7.7`（2026-10-21） | 回合结束 → 一笔辅助请求 → 灰字画在 `conversation.input.overlay`；自带设置页与配置持久化 RPC；**按会话缓存建议**（切回来立即恢复、不重发请求）；**Esc 关闭**；按 `session + turn` 去重；序列守卫丢弃迟到响应；**0.7.7 起组合期不排期，并在检测到本插件时整段暂停（让位）** | 我们：**同样**浏览器侧判定（`session.running` 真→假）+ 宿主无状态 POST；差异在挂载点（官方 `conversation.composer.dock` 槽位 + 自绘绝对定位节点 vs overlay）、配置走宿主 schemastery（无自带设置页）、**没有**跨会话缓存（切换即丢）、**没有** Esc（见 OPEN-QUESTIONS C5） |
 
 两边在「复用 `ctx.llm`、推理档压到最低、绝不上屏草稿」三点上独立收敛到同一结论 —— 这说明设计的约束抓对了。
 
-**共存问题（写进 README）**：两个插件都会往同一个输入框画灰字，也都会每轮各花一笔模型调用；
-同时装会出现两条重叠建议。谁先检测「已有 ghost 在场」谁就能让出，目前两边都没做。
+**共存（写进 README）**：两个插件都会往同一个输入框画灰字，也都会每轮各花一笔模型调用。
+0.7.7 已经落地**单边让位**：它把 `dsh-next-hint` 写进 `KNOWN_GHOST_PACKAGES`，只要启动图里有本包，
+或 DOM 里有 `[data-next-hint-anchor]` / `[data-next-hint-state]` / `[data-next-hint="ghost"]`，
+就整段暂停自己的预测；共享属性 `data-composer-ghost` 是给第三方动态检测用的入口。
+所以同装时的行为是确定的：**我们出灰字，它暂停**（≤0.7.6 的旧版仍会双画）。
+0.1.3 起我们的灰字节点也带 `data-composer-ghost`，只在真的画出来时才有；
+`data-next-hint-anchor` 是常驻节点，不能当「此刻正在显示」的信号。
 
 2026-10-21 作者回复，更正了两点：他**也**在浏览器侧用 `useSession(running)` 判定，predict 路由**同样无状态**
 （有状态的只是设置用的 config RPC）；所以「浏览器判定 / 宿主无状态」不是差异，差异只在挂载点、设置页、会话缓存与 Esc。
-两边都没有跨插件检测，而且都在 document 级监听 keydown —— 同装时一个 Tab 可能同时采纳两条 ghost；
-想互让的话，最简单的共享信号是一个「已有 ghost 在场」的 DOM 属性。IME 方面他没有 `compositionend` 代码：
+回复时两边都还没有跨插件检测，而且都在 document 级监听 keydown —— 若让位失效，一个 Tab 仍可能同时采纳两条 ghost；
+他当时也同意「共享的『已有 ghost 在场』DOM 属性」是最小信号。IME 方面他没有 `compositionend` 代码：
 可见性只看 composer store 的 `draft === ''`，组合文本已经反映在 store 里，所以不会闪；
 他建议在 `data-composer-composing` 置位期间直接抑制 —— 0.1.2 采纳了这条（见 4.8.1 与 OPEN-QUESTIONS C5）。
 

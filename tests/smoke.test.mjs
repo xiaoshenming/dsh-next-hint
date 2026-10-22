@@ -64,6 +64,7 @@ test("browser half registers one module factory", () => {
   assert.match(client, /id: "dsh-next-hint"/);
   assert.match(client, /exports\.inject = /);
   assert.match(client, /exports\.apply = /);
+  assert.match(client, /dataset\.composerGhost = ""/, "the shared ghost marker is published");
 });
 
 test("documentation set is present", () => {

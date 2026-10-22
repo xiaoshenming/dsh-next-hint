@@ -3,6 +3,22 @@
 All notable changes to this project are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versioning: SemVer.
 
+## [0.1.3] - 2026-10-22
+
+### Changed
+
+- The painted ghost now carries the shared `data-composer-ghost` attribute, so other
+  ghost-text plugins can defer to it dynamically instead of depending on this plugin's
+  namespaced markers. The always-mounted `data-next-hint-anchor` is not a "ghost is
+  visible" signal; the shared attribute is only on the painted node.
+
+### Documented
+
+- `dsh-composer-prediction@0.7.7` now gates on IME and stands down when this plugin is
+  present (boot-manifest id or `data-next-hint*` markers). Updated the related-work
+  comparison; the hard double-ghost conflict is gone on their side, while versions up
+  to 0.7.6 still double-paint.
+
 ## [0.1.2] - 2026-10-21
 
 ### Fixed

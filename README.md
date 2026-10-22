@@ -124,7 +124,8 @@ composer:
   browser and both post to a stateless host route; the seams differ
   (they mount the overlay slot, ship their own settings page, cache per session and dismiss
   with Esc; this one uses the official dock slot and drops the offer on a session switch).
-  **Do not install both** — two overlapping ghosts and two auxiliary calls per turn.
+  **Prefer one** — up to 0.7.6 you would get two overlapping ghosts; from 0.7.7 it detects this
+  plugin and pauses itself (this plugin wins). Still prefer one to avoid version drift.
 - **Complementary**: [`dsh-input-assist`](https://github.com/deepseek-ai/deepseek-harness/discussions/6313)
   completes *the sentence you are typing* and checks typos; this plugin suggests *the next
   message after a turn*. The only overlap is an idle empty composer — if you see two ghosts
