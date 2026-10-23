@@ -38,13 +38,17 @@ github:xiaoshenming/dsh-next-hint#main
 dsh plugin --profile web add "github:xiaoshenming/dsh-next-hint#main"
 ```
 
-桌面端装完**重启一次应用**（插件在启动时进花名册）。更新：在插件页点更新，或
+桌面端装完**重启一次应用**（插件在启动时进花名册）。
 
-```bash
-cd ~/.dsh/profiles/desktop && pnpm update dsh-next-hint
-```
-
-更新后如果新版本没生效，再重启一次应用。
+> **更新**：插件页的「检查更新」只会比较 npm registry 源的包，`github:` 源会被直接跳过，
+> 所以它会一直显示「已是最新版本」。GitHub 安装请用下面任一方式，然后重启应用：
+>
+> ```bash
+> cd ~/.dsh/profiles/desktop && pnpm update dsh-next-hint
+> ```
+>
+> 或插件页**卸载**后重新添加 `github:xiaoshenming/dsh-next-hint#main`。
+> 想用「检查更新」按钮，需要等本插件发布到 npm 并从 npm 安装。
 
 ## 怎么用
 

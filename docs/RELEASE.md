@@ -28,7 +28,9 @@ dsh plugin --profile web add "github:<owner>/dsh-next-hint#main"
 
 装出来的是一份**没有 .git 的拷贝**（pnpm 从 codeload 解出来的 tarball），因此：
 
-- **用户侧更新** = 设置 → 插件 → 本插件 → 更新（官方 in-process manager 重新解析 `#main`）；通常热更新，没生效就重启一次。
+- **用户侧更新**（`github:` 源）= `cd ~/.dsh/profiles/desktop && pnpm update dsh-next-hint`，或插件页卸载后重新添加 `github:<owner>/dsh-next-hint#main`，再重启。
+  插件页的「检查更新」只比较 npm registry 源（`@linxin666/dsh-client-ui-plugin-manager` 的 `check-updates` 对 `git` 源直接 `continue`），
+  GitHub 安装永远显示「已是最新版本」，不能当版本判据。
 - 本地开发 = `link:` 指向 checkout，改完重启 Web GUI。
 
 ## 4. 本地开发闭环

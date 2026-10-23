@@ -44,13 +44,18 @@ For a self-managed profile such as `web`:
 dsh plugin --profile web add "github:xiaoshenming/dsh-next-hint#main"
 ```
 
-Restart the app once — plugins join the roster at boot. Update from the plugin page, or:
+Restart the app once — plugins join the roster at boot.
 
-```bash
-cd ~/.dsh/profiles/desktop && pnpm update dsh-next-hint
-```
-
-If the new version does not show up after an update, restart the app once.
+> **Updating:** the plugin page's update check only compares npm-registry sources; a
+> `github:` install is skipped and always reads as "latest". For a GitHub install use
+> one of these, then restart the app:
+>
+> ```bash
+> cd ~/.dsh/profiles/desktop && pnpm update dsh-next-hint
+> ```
+>
+> or uninstall it on the plugin page and add `github:xiaoshenming/dsh-next-hint#main`
+> again. To use the in-app update button, install the plugin from npm once it is published.
 
 ## What you get
 

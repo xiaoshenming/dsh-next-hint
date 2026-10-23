@@ -70,8 +70,9 @@ node --test
    gh run list --repo xiaoshenming/dsh-next-hint --limit 1   # CI 必须绿
    ```
 5. 回帖只发在对口的帖（自己的发布帖 / 有人提问的帖）；已经有准确答复的帖不再补刀。
-6. 本地桌面端在「设置 → 插件 → 本插件 → 更新」验证一遍；用中文汇报：扫了什么、改了什么、
-   怎么验证的、还没做什么。
+6. 本地桌面端验证：`github:` 源的「检查更新」只会比较 npm 源、对 git 源直接跳过；
+   用 `cd ~/.dsh/profiles/desktop && pnpm update dsh-next-hint`（或卸载后重新添加 `#main`）再重启，
+   确认安装版本 = `package.json` 的版本。用中文汇报：扫了什么、改了什么、怎么验证的、还没做什么。
 
 ## 合同（不可破）
 

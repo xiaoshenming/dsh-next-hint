@@ -19,6 +19,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versioning: Se
   from the always-mounted anchor to the painted node (the per-offer rule we
   adopted in 0.1.3); `dsh-input-assist@0.8.0` now targets DSH 0.2.1-rc.2 with
   124 tests and one runtime dependency.
+- Update instructions corrected: the desktop plugin page's update check only compares
+  npm-registry sources, so a `github:` install always reads as "latest"; documented
+  `pnpm update dsh-next-hint` and uninstall/re-add instead.
 
 ## [0.1.3] - 2026-10-22
 
