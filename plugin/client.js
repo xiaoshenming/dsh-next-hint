@@ -37,8 +37,7 @@ window.__ModuleLoader__.load({
     function composerOf(anchor) {
       const root = anchor?.closest?.("[data-composer-dock]")?.parentElement ?? null;
       if (root === null) return null;
-      // The scroll wrapper's first child is the positioned box the editor sits
-      // in (class names are hashed, the data attribute is not).
+      // The scroll wrapper's first child is the positioned box the editor sits in.
       const grow = root.querySelector("[data-input-scroll]")?.firstElementChild ?? null;
       return { root, grow, placeholder: root.querySelector("[data-composer-placeholder]"), composing: root.querySelector("[data-composer-composing]") !== null };
     }
@@ -122,8 +121,7 @@ window.__ModuleLoader__.load({
 
       function hide() {
         node?.remove();
-        node = null;
-        hint = null;
+        node = null; hint = null;
         const parts = composerOf(anchor());
         if (parts?.placeholder) parts.placeholder.style.visibility = "";
       }
@@ -149,9 +147,7 @@ window.__ModuleLoader__.load({
       }
 
       async function request() {
-        abort?.abort();
-        const controller = new AbortController();
-        abort = controller;
+        const controller = new AbortController(); abort?.abort(); abort = controller;
         mark("request", sessionId);
         try {
           // Let the host finish persisting the settled turn before it samples.
@@ -210,23 +206,30 @@ window.__ModuleLoader__.load({
       }
 
       function onKeyDown(event) {
-        if (hint === null) return;
+        if (hint === null || event.isComposing || event.keyCode === 229) return;
         if (event.key !== "Tab" || event.shiftKey || event.altKey || event.ctrlKey || event.metaKey) return;
         const parts = composerOf(anchor());
-        if (parts === null || menuOpen(parts.root)) return;
-        if (!parts.root.contains(document.activeElement)) return;
+        if (parts === null || menuOpen(parts.root) || !parts.root.contains(document.activeElement)) return;
         event.preventDefault();
         event.stopPropagation();
         accept();
       }
 
+      function onCompositionStart() {
+        abort?.abort();
+        abort = null;
+        hide();
+      }
+
       document.addEventListener("keydown", onKeyDown, true);
+      document.addEventListener("compositionstart", onCompositionStart, true);
       const offState = input.state.subscribe?.(onState);
       const offList = list?.subscribe?.(() => onRunning(readRunning(sessionId)));
 
       return {
         stop() {
           document.removeEventListener("keydown", onKeyDown, true);
+          document.removeEventListener("compositionstart", onCompositionStart, true);
           offState?.();
           offList?.();
           abort?.abort();

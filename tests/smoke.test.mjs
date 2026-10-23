@@ -65,6 +65,8 @@ test("browser half registers one module factory", () => {
   assert.match(client, /exports\.inject = /);
   assert.match(client, /exports\.apply = /);
   assert.match(client, /dataset\.composerGhost = ""/, "the shared ghost marker is published");
+  assert.match(client, /event\.isComposing/, "an IME composition owns Tab");
+  assert.match(client, /compositionstart/, "a starting composition dismisses the ghost");
 });
 
 test("documentation set is present", () => {

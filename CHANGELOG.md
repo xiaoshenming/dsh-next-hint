@@ -3,6 +3,23 @@
 All notable changes to this project are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versioning: SemVer.
 
+## [0.1.4] - 2026-10-23
+
+### Fixed
+
+- Starting an IME composition now dismisses a painted ghost and aborts its
+  in-flight request instead of waiting for the next draft publication; Tab during
+  composition stays with the IME (`isComposing` / keyCode 229). The gap was
+  diagnosed by the `dsh-input-assist` author: a ghost painted from an async
+  result can outlive the state that justified it until the next flush.
+
+### Documented
+
+- `dsh-composer-prediction@0.7.8` moved its shared `data-composer-ghost` marker
+  from the always-mounted anchor to the painted node (the per-offer rule we
+  adopted in 0.1.3); `dsh-input-assist@0.8.0` now targets DSH 0.2.1-rc.2 with
+  124 tests and one runtime dependency.
+
 ## [0.1.3] - 2026-10-22
 
 ### Changed

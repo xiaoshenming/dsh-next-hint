@@ -44,12 +44,12 @@
 
 | 项目 | 做法 | 与我们的差异 |
 | --- | --- | --- |
-| [`dsh-composer-prediction`](https://github.com/deepseek-ai/deepseek-harness/discussions/10053) `0.7.7`（2026-10-21） | 回合结束 → 一笔辅助请求 → 灰字画在 `conversation.input.overlay`；自带设置页与配置持久化 RPC；**按会话缓存建议**（切回来立即恢复、不重发请求）；**Esc 关闭**；按 `session + turn` 去重；序列守卫丢弃迟到响应；**0.7.7 起组合期不排期，并在检测到本插件时整段暂停（让位）** | 我们：**同样**浏览器侧判定（`session.running` 真→假）+ 宿主无状态 POST；差异在挂载点（官方 `conversation.composer.dock` 槽位 + 自绘绝对定位节点 vs overlay）、配置走宿主 schemastery（无自带设置页）、**没有**跨会话缓存（切换即丢）、**没有** Esc（见 OPEN-QUESTIONS C5） |
+| [`dsh-composer-prediction`](https://github.com/deepseek-ai/deepseek-harness/discussions/10053) `0.7.8`（2026-10-22） | 回合结束 → 一笔辅助请求 → 灰字画在 `conversation.input.overlay`；自带设置页与配置持久化 RPC；**按会话缓存建议**（切回来立即恢复、不重发请求）；**Esc 关闭**；按 `session + turn` 去重；序列守卫丢弃迟到响应；**0.7.7 起组合期不排期，并在检测到本插件时整段暂停（让位）；0.7.8 把共享 `data-composer-ghost` 移到实际画出的节点（per-offer）** | 我们：**同样**浏览器侧判定（`session.running` 真→假）+ 宿主无状态 POST；差异在挂载点（官方 `conversation.composer.dock` 槽位 + 自绘绝对定位节点 vs overlay）、配置走宿主 schemastery（无自带设置页）、**没有**跨会话缓存（切换即丢）、**没有** Esc（见 OPEN-QUESTIONS C5） |
 
 两边在「复用 `ctx.llm`、推理档压到最低、绝不上屏草稿」三点上独立收敛到同一结论 —— 这说明设计的约束抓对了。
 
 **共存（写进 README）**：两个插件都会往同一个输入框画灰字，也都会每轮各花一笔模型调用。
-0.7.7 已经落地**单边让位**：它把 `dsh-next-hint` 写进 `KNOWN_GHOST_PACKAGES`，只要启动图里有本包，
+0.7.7 起落地**单边让位**（0.7.8 把共享属性收敛到 per-offer 节点）：它把 `dsh-next-hint` 写进 `KNOWN_GHOST_PACKAGES`，只要启动图里有本包，
 或 DOM 里有 `[data-next-hint-anchor]` / `[data-next-hint-state]` / `[data-next-hint="ghost"]`，
 就整段暂停自己的预测；共享属性 `data-composer-ghost` 是给第三方动态检测用的入口。
 所以同装时的行为是确定的：**我们出灰字，它暂停**（≤0.7.6 的旧版仍会双画）。
@@ -63,9 +63,16 @@
 可见性只看 composer store 的 `draft === ''`，组合文本已经反映在 store 里，所以不会闪；
 他建议在 `data-composer-composing` 置位期间直接抑制 —— 0.1.2 采纳了这条（见 4.8.1 与 OPEN-QUESTIONS C5）。
 
+2026-10-22 `dsh-input-assist` 作者在 #6313 给了更根本的诊断：他也没有 `compositionend` 代码，
+可见性只对照 composer store 的 `draft/rev`，「画」和「撤」读同一对值，所以不存在晚一拍的窗口；
+他认为我们那一下闪不是 IME 本身，而是**渲染与判定读了两份状态**。
+0.1.4 因此在 0.1.2 的请求闸门之外，又在 `compositionstart` 时立即 `hide()` + abort
+（异步结果画出来的灰字不能只等下一轮 store flush），并把组合期的 Tab 让给 IME（`isComposing` / 229）。
+真实输入法逐帧复测仍是 C5。
+
 ### 3.2 不是同类，但会撞在同一块屏幕上：`dsh-input-assist`
 
-[`dsh-input-assist`](https://github.com/deepseek-ai/deepseek-harness/discussions/6313)（`0.7.1`）做的是**打字时的续写**
+[`dsh-input-assist`](https://github.com/deepseek-ai/deepseek-harness/discussions/6313)（`0.8.0`，2026-10-23）做的是**打字时的续写**
 （Copilot 式、光标后内联、逐词 Tab、流式渐显），以及中英错别字检查；不是「回合结束后的下一句」。
 两者场景基本不重叠：
 
@@ -76,6 +83,9 @@
 
 唯一重叠是「空框停笔」：可能同时看到两条 ghost。真撞上就关掉其中一个的开关 ——
 一个管「把这句写完」，一个管「下一句说什么」。
+
+0.8.0 已适配 DSH `0.2.1-rc.2`（`engines.dsh >=0.2.1-rc.2`），124 条测试；运行时依赖只剩
+`@deepseek-ai/schemastery` 一个，`dsh-settings` / `cordis-plugin-loader` 已转为 type-only devDep。
 
 ## 4. 已核实的缝合点（每条都能复查）
 
