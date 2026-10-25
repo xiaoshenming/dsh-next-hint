@@ -71,7 +71,7 @@ function fakeSeams({ text = "run the tests", finish = { kind: "stop" } } = {}) {
   };
 }
 
-function harness({ config = {}, session = fakeSession(), llm, text, finish, warnings = [] } = {}) {
+function harness({ config = {}, session = fakeSession(), llm, text, finish, connection, warnings = [] } = {}) {
   const sessions = { get: (id) => (id === "s1" ? session : undefined) };
   const webServer = { getOrigin: () => ORIGIN, port: 1234 };
   const logger = { warn: (message) => warnings.push(String(message)) };
@@ -92,6 +92,7 @@ function harness({ config = {}, session = fakeSession(), llm, text, finish, warn
     config: resolved,
     sessions,
     webServer,
+    ...connection === undefined ? {} : { connection },
     llm: llm ?? fakeLlm(),
     llmSeams: seams,
     logger,
@@ -112,6 +113,24 @@ test("rejects anything but POST from loopback", async () => {
   assert.equal((await call(handler, { remoteAddress: "10.0.0.7" })).status, 403);
   assert.equal((await call(handler, { headers: { origin: "http://evil.test" } })).status, 403);
   assert.equal((await call(handler, { headers: { "sec-fetch-site": "cross-site" } })).status, 403);
+});
+
+test("requires an authenticated owner when the host exposes admission", async () => {
+  let seen;
+  const owner = harness({
+    connection: {
+      admit: (req) => {
+        seen = req;
+        return { peer: { principal: { kind: "owner" } } };
+      },
+    },
+  });
+  assert.equal((await call(owner.handler, { body: { sessionId: "s1" } })).status, 200);
+  assert.equal(seen.method, "POST");
+
+  assert.equal((await call(harness({ connection: { admit: () => ({ rejection: 401 }) } }).handler)).status, 401);
+  assert.equal((await call(harness({ connection: { admit: () => ({ rejection: 403 }) } }).handler)).status, 403);
+  assert.equal((await call(harness({ connection: { admit: () => ({ peer: { principal: { kind: "user" } } }) } }).handler)).status, 403);
 });
 
 test("same-origin browser requests pass the origin check", async () => {

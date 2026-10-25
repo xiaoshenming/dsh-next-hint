@@ -53,6 +53,21 @@
 | 无障碍与键盘（快捷键采纳、Esc 关闭） | client | 只用键盘可完成采纳 |
 | 远端浏览器策略 | host | 单测 + 手工验证 |
 
+## 阶段 3.5 · 社区经验吸收（2026-10-25）
+
+| # | 任务 | 来源 | 状态 |
+| --- | --- | --- | --- |
+| S-9 | owner 鉴权（`connection.admit`，owner principal） | Stijnus 1.2.2 | ✅ 0.1.5 |
+| S-10 | refused insertion 后隐藏 stale ghost | Stijnus 1.2.2 | ✅ 0.1.5 |
+| S-11 | Esc 关闭 + 组合结束后重试 | Amir / Stijnus | ⬜ C5 |
+| S-12 | 切回会话恢复灰字（按会话缓存） | Amir 0.7.x | ⬜ C6 |
+| S-13 | 设置页（schemastery Config → UI） | 三家 | ⬜ |
+| S-14 | npm 发布 + 自定义市场索引 | Stijnus / jabingu | ⬜ |
+| S-15 | 多候选循环（Alt+↑/↓） | Stijnus 1.2.x | ⬜ |
+| S-16 | 用量 / 费用统计 | jabingu 0.1.x | ⬜ |
+| S-17 | 单一 draft 真值重构 | honlnk #6313 | ⬜ |
+| S-18 | 预算下调（128→96 token；8000→4000 bytes） | jabingu / Amir | ⬜ |
+
 ## 阶段 4 · 发布
 
 - [ ] CHANGELOG 按 Keep a Changelog 写

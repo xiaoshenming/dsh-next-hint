@@ -45,7 +45,7 @@
 | 职责 | 说明 |
 | --- | --- |
 | 路由 | `ctx.webServer.register({ kind: "exact", path: "/api/next-hint", handler })`，返回 disposer |
-| 来源校验 | 只接受同源、loopback 来源；`sessionId` 解析不到直接 400 |
+| 来源校验 | loopback + 同源；`ctx.connection.admit(req)` 要求 `peer.principal.kind === "owner"`；`sessionId` 解析不到直接 400 |
 | 取样 | `ctx.sessions.get(id)` → 最近几轮文本；不落盘、不进日志 |
 | 预算守卫 | `maxInputBytes` / `maxOutputTokens` / `timeoutMs` / `perSessionCooldownMs` / 单会话并发 1 |
 | 降级 | 无路由 / 429 / 超时 / 输出不合规 → `204` + 一条 warn；不返回错误正文 |
@@ -121,6 +121,7 @@ input.actions.insertText(text, span);             // 返回 true 才算成功
 ## 9. 安全与隐私
 
 - 只在用户自己配置的模型路由上跑；不引入任何第三方端点。
+- 路由要求 DSH owner admission（`ctx.connection.admit`），不只是 loopback / 同源；无 cookie 的本机请求会 401/403。
 - 浏览器只发 `sessionId`，会话原文由宿主在进程内取用一次，不落盘、不进日志、不跨进程。
 - 远端（非 loopback）来源：路由直接拒绝，与市场插件的既定边界一致。
 - 建议条是**建议**：无论内容多像指令，都不自动发送。

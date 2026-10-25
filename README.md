@@ -121,16 +121,18 @@ Deliberate choices:
 
 ## Related work
 
-Two neighbouring plugins exist; neither is the same tool, but both can paint on the same
-composer:
+Four same-kind plugins now exist, plus one complementary tool; **prefer one same-kind**:
 
-- **Same idea**: [Composer predictions (`dsh-composer-prediction`)](https://github.com/deepseek-ai/deepseek-harness/discussions/10053).
-  Both turn "a turn settled" into one auxiliary request and a ghost line, both decide in the
-  browser and both post to a stateless host route; the seams differ
-  (they mount the overlay slot, ship their own settings page, cache per session and dismiss
-  with Esc; this one uses the official dock slot and drops the offer on a session switch).
-  **Prefer one** — up to 0.7.6 you would get two overlapping ghosts; from 0.7.7 it detects this
-  plugin and pauses itself (this plugin wins). Still prefer one to avoid version drift.
+- **This plugin**: official dock slot and a stateless host route; Tab accepts, the offer is
+  dropped on a session switch.
+- [Composer predictions (`dsh-composer-prediction`)](https://github.com/deepseek-ai/deepseek-harness/discussions/10053):
+  same idea; overlay slot, per-session cache, Esc, settings page. From 0.7.7 it detects this
+  plugin and pauses itself (this plugin wins).
+- [Composer Predictions (`dsh-composer-predictions`)](https://github.com/deepseek-ai/deepseek-harness/discussions/10769):
+  same idea plus draft continuation; Alt+↑/↓ candidate cycling, Esc, owner admission; needs
+  DSH ≥0.2.1-rc.3.
+- [Reply Suggestions (`dsh-reply-suggestions`)](https://github.com/deepseek-ai/deepseek-harness/discussions/9656):
+  same idea; Enter-to-fill, Esc, usage/cost stats; built for rc.2.
 - **Complementary**: [`dsh-input-assist`](https://github.com/deepseek-ai/deepseek-harness/discussions/6313)
   completes *the sentence you are typing* and checks typos; this plugin suggests *the next
   message after a turn*. The only overlap is an idle empty composer — if you see two ghosts

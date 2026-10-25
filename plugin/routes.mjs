@@ -180,6 +180,7 @@ export function systemInstruction(locale, workspace, maxChars, attempt = 1) {
  * @param {any} deps.config - resolved plugin configuration.
  * @param {any} deps.sessions - host `ctx.sessions`.
  * @param {any} deps.webServer - host `ctx.webServer`.
+ * @param {any} [deps.connection] - host `ctx.connection`; owner admission when present.
  * @param {any} deps.llm - host `ctx.llm`.
  * @param {any} deps.llmSeams - `{ createUserMessage, BlockAssembler, deadline }`.
  * @param {any} deps.logger - host logger.
@@ -187,7 +188,7 @@ export function systemInstruction(locale, workspace, maxChars, attempt = 1) {
  * @returns {(req: any, res: any) => Promise<void>}
  */
 export function createHintHandler(deps) {
-  const { config, sessions, webServer, llm, llmSeams, logger } = deps;
+  const { config, sessions, webServer, connection, llm, llmSeams, logger } = deps;
   const now = deps.now ?? Date.now;
   const ledger = createLedger();
 
@@ -195,6 +196,11 @@ export function createHintHandler(deps) {
     try {
       if (req.method !== "POST") return end(res, 405);
       if (!isLoopbackAddress(req.socket?.remoteAddress)) return end(res, 403);
+      if (connection !== undefined) {
+        const admission = connection.admit(req);
+        if ("rejection" in admission) return end(res, admission.rejection);
+        if (admission.peer?.principal?.kind !== "owner") return end(res, 403);
+      }
       if (!isAllowedOrigin(req.headers?.origin, webServer.port)) return end(res, 403);
       if (req.headers?.["sec-fetch-site"] === "cross-site") return end(res, 403);
 
@@ -275,6 +281,6 @@ export function createHintHandler(deps) {
  * @returns {() => void} disposer.
  */
 export function registerHintRoute(ctx, deps) {
-  const handler = createHintHandler({ ...deps, webServer: ctx.webServer });
+  const handler = createHintHandler({ ...deps, webServer: ctx.webServer, connection: ctx.connection });
   return ctx.webServer.register({ kind: "exact", path: ROUTE_PATH, handler });
 }

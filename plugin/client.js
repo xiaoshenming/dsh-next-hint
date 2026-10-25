@@ -139,8 +139,7 @@ window.__ModuleLoader__.load({
       function accept() {
         if (hint === null) return false;
         const span = input.actions?.captureInsertion?.();
-        if (span == null) return false;
-        if (input.actions?.insertText?.(hint.text, span) !== true) return false;
+        if (span == null || input.actions?.insertText?.(hint.text, span) !== true) { hide(); return false; }
         hide();
         input.focus?.();
         return true;

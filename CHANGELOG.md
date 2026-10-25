@@ -3,6 +3,27 @@
 All notable changes to this project are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versioning: SemVer.
 
+## [0.1.5] - 2026-10-25
+
+### Fixed
+
+- `POST /api/next-hint` now requires an authenticated owner: the host asks
+  `ctx.connection.admit(req)` and checks `peer.principal.kind === "owner"` before
+  reading a session or spending tokens. Loopback and origin stay as defense in
+  depth, but they are no longer the only fence (adopted from
+  `dsh-composer-predictions` 1.2.2).
+- A refused insertion now hides the ghost instead of leaving a stale offer that
+  can no longer be accepted.
+
+### Documented
+
+- Four same-kind plugins are now live (this one, `dsh-composer-prediction`,
+  `dsh-composer-predictions`, `dsh-reply-suggestions`). RESEARCH 3.3 records the
+  comparison and a prioritized backlog: Esc, session-switch restore, settings
+  page, npm publishing, candidate cycling, usage stats, single-source draft.
+- DSH `0.2.1-rc.3` released: a source scan of its composer package still finds
+  every seam this plugin uses; a real rc.3 run is still pending.
+
 ## [0.1.4] - 2026-10-23
 
 ### Fixed

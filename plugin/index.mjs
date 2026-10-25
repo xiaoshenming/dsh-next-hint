@@ -12,8 +12,8 @@ import { registerHintRoute } from "./routes.mjs";
 
 export const name = "next-hint";
 
-/** Services this half needs: the model, the session store, the HTTP carrier. */
-export const inject = ["llm", "sessions", "webServer"];
+/** Services this half needs: the model, the session store, the HTTP carrier, the admission fence. */
+export const inject = ["llm", "sessions", "webServer", "connection"];
 
 /** Settings page schema, or undefined when schemastery is unreachable. */
 export let Config;

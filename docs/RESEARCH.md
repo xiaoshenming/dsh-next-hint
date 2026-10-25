@@ -87,6 +87,35 @@
 0.8.0 已适配 DSH `0.2.1-rc.2`（`engines.dsh >=0.2.1-rc.2`），124 条测试；运行时依赖只剩
 `@deepseek-ai/schemastery` 一个，`dsh-settings` / `cordis-plugin-loader` 已转为 type-only devDep。
 
+### 3.3 四家同款：可吸收的经验（2026-10-25）
+
+同类现在有四家（按首次发帖时间）：
+
+| 项目 | 交互 | 值得学的 |
+| --- | --- | --- |
+| [`dsh-reply-suggestions`](https://github.com/deepseek-ai/deepseek-harness/discussions/9656)（jabingu，0.1.17） | 回合结束 → 灰字；**Enter 填入**、Esc 隐藏；用量/费用统计卡片；只取上一轮 400/1200 字符、96 token、关闭深度思考；缓存 + 并发去重；66 测试 | Enter 与原生发送的仲裁；`llm.stream` 的 usage 统计与费用估算；更紧的取样预算 |
+| [`dsh-composer-prediction`](https://github.com/deepseek-ai/deepseek-harness/discussions/10053)（Amir，0.7.8） | 回合结束 → 灰字；Tab；**按会话缓存**；Esc；设置页；序列守卫；0.7.8 把共享 `data-composer-ghost` 改成 per-offer；让位给本插件 | 跨会话恢复（C6）；Esc（C5）；设置页 |
+| [`dsh-composer-predictions`](https://github.com/deepseek-ai/deepseek-harness/discussions/10769)（Stijnus，1.2.4） | 回合结束 + 打字停顿续写；Tab；**Alt+↑/↓ 循环最多 3 个候选**；Esc；设置 → 通用；**owner 鉴权**；IME 候选窗让键；**refused insertion 后清 stale ghost**；36 测试；要求 rc.3 | `ctx.connection.admit(request)` + `peer.principal.kind === "owner"`（0.1.5 已补）；候选循环；失败采纳后立即 hide |
+| `dsh-next-hint`（本仓库，0.1.5） | 回合结束 → 灰字；Tab；空/拒答重试一次；IME 组合期不画；0.1.5 补 owner 鉴权 | — |
+
+**优先级 backlog（以后优化）**：
+
+1. ~~owner 鉴权~~（0.1.5 已做）；~~refused insertion 后 hide~~（0.1.5 已做）。
+2. Esc 关闭（C5）；组合结束后重试一次（Stijnus 的 IME resumption）。
+3. 切回会话恢复灰字（C6，Amir 的 per-session cache）。
+4. 设置页（三家都有；我们只有 schemastery Config）。
+5. npm 发布（Stijnus / jabingu 都在 npm；我们的「检查更新」因此永远看不到 GitHub 更新）。
+6. 多候选循环（Stijnus 的 Alt+↑/↓）。
+7. 用量 / 费用统计（jabingu）。
+8. 单一 draft 真值重构（honlnk 的建议：画/撤同源，减少晚一拍）。
+9. 取样预算下调：Amir 64 token、jabingu 96 token/400+1200 字符，我们默认 128 token/8000 字节。
+
+**rc.3 兼容性**：官方 `0.2.1-rc.3`（2026-10-23）发布。源码扫描
+`@deepseek-ai/dsh-client-ui-conversation@0.2.1-rc.3`：`conversation.composer.dock` /
+`data-input-scroll` / `data-composer-placeholder` / `data-composer-composing` /
+`captureInsertion` / `insertText` 都还在；release notes 没有 composer 破坏性变更。
+**未真机跑过 rc.3**，升级后需要一次手测。
+
 ## 4. 已核实的缝合点（每条都能复查）
 
 ### 4.1 包声明（双半包）
