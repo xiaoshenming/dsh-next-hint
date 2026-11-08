@@ -143,6 +143,9 @@ Four same-kind plugins now exist, plus one complementary tool; **prefer one same
 - Measured on **DSH Desktop `0.2.1-rc.2` (Windows)** and the same version's **web profile (macOS)**. The host half needs
   `ctx.llm`, `ctx.sessions`, and `ctx.webServer.register`; the browser half needs
   the `conversation.composer.dock` slot and the composer input facade.
+- Re-checked against the installed **`0.2.2-rc.1`** build by scanning its `app.asar`:
+  every seam above still exists, and `conversation.composer.dock` is a `list` slot, so it
+  coexists with other composer plugins. A real GUI run on rc.1 is still pending.
 - Still `0.x`: if upstream moves those seams, the ghost breaks first. Its position
   relies on the editor's `[data-input-scroll]` structure; a missing anchor means
   no ghost, silently.

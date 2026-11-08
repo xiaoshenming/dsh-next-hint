@@ -124,6 +124,9 @@ Tab 只在「没有别的候选菜单占用它」时生效 —— `/`、`@` 菜�
 
 - 实测环境：**DSH Desktop `0.2.1-rc.2`（Windows）** 与同版本的 **web profile（macOS）**。宿主半边依赖 `ctx.llm` / `ctx.sessions` /
   `ctx.webServer.register`；浏览器半边依赖 `conversation.composer.dock` 槽位与输入框 facade。
+- 对已安装的 **`0.2.2-rc.1`** 做过一次发行版扫描（`app.asar`）：上面这些接缝都还在，
+  且 `conversation.composer.dock` 是 `list` 槽，可以跟别的 composer 插件共存。
+  rc.1 上的真机 GUI 还没跑过。
 - 版本仍是 `0.x`：上游一旦改这些缝，灰字可能先坏。灰字定位依赖编辑器 DOM 的
   `[data-input-scroll]` 结构，找不到锚点时会安静地不出。
 - 远端（非 loopback）来源会被路由直接拒绝。

@@ -124,4 +124,8 @@ input.actions.insertText(text, span);             // 返回 true 才算成功
 - 路由要求 DSH owner admission（`ctx.connection.admit`），不只是 loopback / 同源；无 cookie 的本机请求会 401/403。
 - 浏览器只发 `sessionId`，会话原文由宿主在进程内取用一次，不落盘、不进日志、不跨进程。
 - 远端（非 loopback）来源：路由直接拒绝，与市场插件的既定边界一致。
+- Desktop 壳转发时会删掉 `origin` / `cookie` / `sec-fetch-site`，再塞自己的 `dsh-auth-*` cookie
+  （同类作者在 [`#10769`](https://github.com/deepseek-ai/deepseek-harness/discussions/10769) 实测）：
+  `admit()` 因此靠 cookie 命中 owner peer，origin 比较被跳过。所以**不能**再加一条「必须带 Origin」，
+  `isAllowedOrigin(undefined) === true` 是刻意为之，`tests/host/routes.test.mjs` 用断言钉住。
 - 建议条是**建议**：无论内容多像指令，都不自动发送。

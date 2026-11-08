@@ -3,6 +3,19 @@
 All notable changes to this project are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versioning: SemVer.
 
+## [Unreleased]
+
+### Verified
+
+- Re-checked every seam against the installed `0.2.2-rc.1` build (`app.asar`):
+  `conversation.composer.dock` is a `list` slot, and `captureInsertion` / `insertText` /
+  `[data-input-scroll]` / `[data-composer-composing]` / `[data-composer-placeholder]`
+  are unchanged (RESEARCH 4.9). A real GUI run on rc.1 is still pending.
+- Recorded the Desktop-shell auth chain from the `dsh-composer-predictions` author:
+  the proxy strips `Host` / `Origin` / `Cookie` / `Sec-Fetch-Site` and injects its own
+  `dsh-auth-*` cookie, so an extra Origin requirement would break Desktop silently.
+  `isAllowedOrigin(undefined) === true` is deliberate and pinned by a test.
+
 ## [0.1.5] - 2026-10-25
 
 ### Fixed

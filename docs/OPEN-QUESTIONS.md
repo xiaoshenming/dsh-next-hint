@@ -81,6 +81,11 @@
 - 怎么验：真实输入法下跑「组合中回合结束」和「灰字在场按 Esc」两种场景。
 - 算过：Esc 关闭；组合期不画；不闪。
 - 约束：`plugin/client.js` 已 300 行（合同上限 300），再加逻辑前必须先压行数或把可测纯函数抽出来。
+- 2026-10-25 Stijnus 的回复（[`#10769`](https://github.com/deepseek-ai/deepseek-harness/discussions/10769)）：
+  `Alt+↑/↓` 只判 `event.isComposing === true || event.keyCode === 229`，外加 `compositionstart/end`
+  （capture、document 级）的引用集合；**「候选窗是否持有方向键」没有可移植信号** ——
+  有些输入法先提交组合再派发方向键，那时它就是普通按键。做 Esc / 候选循环时照抄这套「组合期一律让键」，
+  别追求精确判定。
 
 ### C6 — 切回会话时要不要恢复灰字
 

@@ -1,6 +1,7 @@
 # 调研（一手证据 + 外部来源）
 
 > 调研时间：2026-10（本机 DSH Desktop `0.2.1-rc.2`，build `332895e0`）
+> 复核：2026-11-08，本机已升到 **`0.2.2-rc.1`**；发行版里逐条重扫接缝见 `4.9。
 > 结论先行：**官方没有该功能，社区市场也没有该插件，但缝合点全开，且每一条都有可指认的出处。**
 
 ## 1. 本机环境事实
@@ -109,6 +110,13 @@
 7. 用量 / 费用统计（jabingu）。
 8. 单一 draft 真值重构（honlnk 的建议：画/撤同源，减少晚一拍）。
 9. 取样预算下调：Amir 64 token、jabingu 96 token/400+1200 字符，我们默认 128 token/8000 字节。
+
+**Stijnus 的补充（2026-10-25，[`#10769`](https://github.com/deepseek-ai/deepseek-harness/discussions/10769)）**：
+Desktop 壳的 `forwardWebRequest` 在转发前删掉 `host` / `origin` / `cookie` / `sec-fetch-site`，
+再塞一个 `/connect` 阶段拿到的 `dsh-auth-*` cookie。于是 `admit()` 里 origin 比较被跳过、
+cookie 命中共享的 owner peer。**如果我们在 `admit` 之外再加一条「必须带 Origin」或
+「`Sec-Fetch-Site` 必须同源」的检查，Desktop 路径会静默失效** —— 他那边能活，就是因为没加。
+我们的 `isAllowedOrigin(undefined) === true` 正好是这条，`tests/host/routes.test.mjs` 用断言钉住。
 
 **rc.3 兼容性**：官方 `0.2.1-rc.3`（2026-10-23）发布。源码扫描
 `@deepseek-ai/dsh-client-ui-conversation@0.2.1-rc.3`：`conversation.composer.dock` /
@@ -256,6 +264,30 @@ input.insertReference(quoteChip, { start, end, draftRev });
 
 于是请求闸门与「已画灰字是否仍有效」的检查都会在组合期关上，`compositionend` 之后由输入状态的自然发布会重新评估。
 **尚未做的**：真实输入法下逐帧复测（正常提交 / 取消 / 直接按 Esc 三种结束），以及 Esc 关闭本身 —— C5 仍开着。
+
+### 4.9 复核（`0.2.2-rc.1`，2026-11-08）
+
+> 这次不读源码包，直接读本机装着的发行版
+> `/Applications/DeepSeek Harness.app/Contents/Resources/app.asar`（213,240,777 字节），
+> 按「字符串出现次数 + 上下文形状」核对。静态扫描 ≠ 运行时行为，所以真机跑一轮仍算未做。
+
+| 接缝 | 在 `0.2.2-rc.1` 里的样子 |
+| --- | --- |
+| `conversation.composer.dock` | 槽位声明 `{ kind: "list", scope: "session" }`（`packages/client/ui-conversation/src/client/contract/slots.ts:327`）；渲染点带 `"data-composer-dock": true` 并 `renderSlot("conversation.composer.dock", {})` |
+| 输入框动作面 | `captureInsertion: () => ({ ...this.caretSpan(), draftRev: this.rev })`；`insertText(text, span)` 仍只在 revision 未变时写入，形状未变 |
+| `[data-input-scroll]` | 编辑器滚动容器仍在（`div{ref: scrollRef, className: css.scroll, "data-input-scroll": true}`） |
+| `[data-composer-composing]` | 仍由宿主维护：`compositionstart/end` + `editor.isComposing()` → `toggleAttribute("data-composer-composing", …)`；样式里还有 `[data-composer-composing] p:last-child:after{content:none}` |
+| `[data-composer-placeholder]` | 仍在；宿主自己的占位伪元素（`--dsh-composer-hint`）也在，灰字要避开它的位置 |
+
+两条顺带确认：
+
+- **dock 是 `list` 槽，不是 `single`** —— 本插件与同类、摆件类插件可以共存。对照
+  [`#12571`](https://github.com/deepseek-ai/deepseek-harness/discussions/12571)：
+  `conversation.input.model.label` 是 `single`，三家连接器插件为此被迫比优先级。
+- 宿主自己就用 `data-composer-composing` 做组合期抑制 —— 我们 0.1.2 读这个属性，与官方判定同源，
+  比插件侧自己记 `compositionstart` 更不容易晚一拍。
+
+**这次没做的**：在 `0.2.2-rc.1` 上用真实 GUI 跑一轮。
 
 ## 5. 外部调研
 
